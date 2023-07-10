@@ -1,9 +1,10 @@
-package owt.training.fhir.config;
+package owt.training.fhir.config.server;
 
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import owt.training.fhir.interceptor.CustomLoggingInterceptor;
 import owt.training.fhir.provider.PatientProvider;
 
@@ -16,30 +17,32 @@ public class FhirRestfulServer extends RestfulServer {
 
     private static final long serialVersionUID = 1L;
 
+    @Autowired
+    private PatientProvider patientProvider;
+
     @Override
     public void initialize() {
+        addResourceProviders();
+        registerInterceptors();
+        setVariousConfig();
+    }
 
-        /*
-         Add Resource Providers
-         */
+    private void addResourceProviders() {
         List<IResourceProvider> providers = new ArrayList<>();
 //        providers.add(new MockPatientProvider());
-        providers.add(new PatientProvider());
+        providers.add(patientProvider);
         setResourceProviders(providers);
+    }
 
-        /*
-        Add Interceptors
-         */
+    private void registerInterceptors() {
         registerInterceptor(new CustomLoggingInterceptor()); // your logging
         registerInterceptor(new ResponseHighlighterInterceptor()); // enable viewing in browser
+    }
 
-        /*
-        Various config
-         */
+    private void setVariousConfig() {
         setDefaultResponseEncoding(EncodingEnum.JSON);
         setImplementationDescription("Spring Boot HAPI-FHIR (R4) Simple Server");
         setDefaultPrettyPrint(true);
-
     }
 }
 

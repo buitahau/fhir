@@ -5,11 +5,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.GenericGenerator;
+import owt.training.fhir.constant.enums.GenderEnum;
+import owt.training.fhir.constant.enums.MaritalStatusEnum;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity(name = "patient")
 @AllArgsConstructor
@@ -26,4 +25,18 @@ public class PatientEntity {
 
     @Column
     private String name;
+
+    @Column
+    private String telecom;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private GenderEnum gender;
+
+    @Column
+    private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "marital")
+    private MaritalStatusEnum maritalStatus;
 }
