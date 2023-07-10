@@ -1,4 +1,4 @@
-package owt.training.fhir.config.provider;
+package owt.training.fhir.provider;
 
 
 import ca.uhn.fhir.rest.annotation.Create;

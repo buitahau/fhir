@@ -1,4 +1,4 @@
-package owt.training.fhir.config.interceptor;
+package owt.training.fhir.interceptor;
 
 import ca.uhn.fhir.interceptor.api.Hook;
 import ca.uhn.fhir.interceptor.api.Interceptor;

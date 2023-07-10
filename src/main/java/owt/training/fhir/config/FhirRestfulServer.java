@@ -4,8 +4,8 @@ import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
-import owt.training.fhir.config.interceptor.CustomLoggingInterceptor;
-import owt.training.fhir.config.provider.MockPatientProvider;
+import owt.training.fhir.interceptor.CustomLoggingInterceptor;
+import owt.training.fhir.provider.PatientProvider;
 
 import javax.servlet.annotation.WebServlet;
 import java.util.ArrayList;
@@ -23,7 +23,8 @@ public class FhirRestfulServer extends RestfulServer {
          Add Resource Providers
          */
         List<IResourceProvider> providers = new ArrayList<>();
-        providers.add(new MockPatientProvider());
+//        providers.add(new MockPatientProvider());
+        providers.add(new PatientProvider());
         setResourceProviders(providers);
 
         /*
