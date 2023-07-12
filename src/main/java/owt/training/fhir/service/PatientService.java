@@ -1,6 +1,5 @@
 package owt.training.fhir.service;
 
-import org.hl7.fhir.r4.model.Patient;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

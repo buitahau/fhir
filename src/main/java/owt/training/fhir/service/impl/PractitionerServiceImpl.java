@@ -7,6 +7,7 @@ import owt.training.fhir.repository.PractitionerRepository;
 import owt.training.fhir.service.PractitionerService;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PractitionerServiceImpl implements PractitionerService {
@@ -20,6 +21,7 @@ public class PractitionerServiceImpl implements PractitionerService {
     @Override
     public PractitionerEntity create(PractitionerEntity entity) {
         validate(entity);
+        entity.setId(UUID.randomUUID().toString());
         return practitionerRepository.save(entity);
     }
 

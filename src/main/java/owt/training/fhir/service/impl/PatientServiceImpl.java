@@ -11,6 +11,7 @@ import owt.training.fhir.service.PatientService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class PatientServiceImpl implements PatientService {
@@ -29,6 +30,7 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public PatientEntity create(PatientEntity entity) {
         validate(entity);
+        entity.setId(UUID.randomUUID().toString());
         return patientRepository.save(entity);
     }
 

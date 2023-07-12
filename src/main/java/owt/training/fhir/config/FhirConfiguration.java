@@ -8,12 +8,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class FhirConfig {
+public class FhirConfiguration {
 
     @Bean
     public FhirValidator fhirValidator() {
         FhirContext fhirContext = FhirContext.forR4();
-
         FhirValidator validator = fhirContext.newValidator();
 
         // Create a validation module and register it

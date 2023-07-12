@@ -5,16 +5,9 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.api.PatchTypeEnum;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ca.uhn.fhir.validation.FhirValidator;
-import ca.uhn.fhir.validation.SingleValidationMessage;
-import ca.uhn.fhir.validation.ValidationResult;
-import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.InstantType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.data.domain.Example;
@@ -22,27 +15,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import owt.training.fhir.constant.PatientConstant;
 import owt.training.fhir.domain.PatientEntity;
 import owt.training.fhir.service.PatientService;
+import owt.training.fhir.util.MethodOutcomeUtil;
 import owt.training.fhir.util.mapper.PatientMapper;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class PatientProvider implements IResourceProvider {
+public class PatientProvider extends BaseProvider {
 
     private PatientService patientService;
 
-    private FhirValidator fhirValidator;
-
     public PatientProvider(PatientService patientService, FhirValidator fhirValidator) {
+        super(fhirValidator);
         this.patientService = patientService;
-        this.fhirValidator = fhirValidator;
     }
 
     @Override
@@ -61,14 +49,14 @@ public class PatientProvider implements IResourceProvider {
     public MethodOutcome create(@ResourceParam Patient thePatient) {
         validate(thePatient);
         PatientEntity entity = patientService.create(PatientMapper.convert(thePatient));
-        return buildMethodOutcome(entity);
+        return MethodOutcomeUtil.buildMethodOutcome(entity);
     }
 
     @Update
     public MethodOutcome update(@IdParam IdType theId, @ResourceParam Patient thePatient) {
         validate(thePatient);
         PatientEntity entity = patientService.update(theId.getIdPart(), PatientMapper.convert(thePatient));
-        return buildMethodOutcome(entity);
+        return MethodOutcomeUtil.buildMethodOutcome(entity);
     }
 
     @Delete
@@ -99,39 +87,7 @@ public class PatientProvider implements IResourceProvider {
         String familyToMatch = theFamily.getValue();
         Page<PatientEntity> result = patientService.findAll(buildExample(familyToMatch),
                 buildPageable(theOffset, theCount));
-        return buildIBundleProvider(result);
-    }
-
-    private IBundleProvider buildIBundleProvider(Page<PatientEntity> result) {
-        return new IBundleProvider() {
-            @Override
-            public IPrimitiveType<Date> getPublished() {
-                return InstantType.withCurrentTime();
-            }
-
-            @Nonnull
-            @Override
-            public List<IBaseResource> getResources(int theFromIndex, int theToIndex) {
-                return result.get().map(PatientMapper::convert).collect(Collectors.toList());
-            }
-
-            @Nullable
-            @Override
-            public String getUuid() {
-                return null;
-            }
-
-            @Override
-            public Integer preferredPageSize() {
-                return null;
-            }
-
-            @Nullable
-            @Override
-            public Integer size() {
-                return result.getTotalPages();
-            }
-        };
+        return buildIBundleProvider(result, PatientMapper::convert);
     }
 
     private Pageable buildPageable(Integer offset, Integer count) {
@@ -147,30 +103,5 @@ public class PatientProvider implements IResourceProvider {
     private void validateDelete(IdType theId) {
         patientService.findById(theId.getIdPart())
                 .orElseThrow(() -> new ResourceNotFoundException(theId));
-    }
-
-    private MethodOutcome buildMethodOutcome(PatientEntity entity) {
-        MethodOutcome retVal = new MethodOutcome();
-        retVal.setId(new IdType(PatientConstant.PATIENT_RESOURCE_NAME, entity.getId()));
-        retVal.setResource(PatientMapper.convert(entity));
-        return retVal;
-    }
-
-    private void validate(Patient thePatient) {
-        ValidationResult validationResult = fhirValidator.validateWithResult(thePatient);
-        if (validationResult.isSuccessful()) {
-            return;
-        }
-
-        throw new InvalidRequestException(buildErrorMessage(validationResult.getMessages()));
-    }
-
-    private String buildErrorMessage(List<SingleValidationMessage> messages) {
-        StringBuilder errorMessageBuilder = new StringBuilder();
-        messages.forEach(message -> errorMessageBuilder.append(message.getLocationString())
-                .append(" - ")
-                .append(message.getMessage())
-                .append("."));
-        return errorMessageBuilder.toString();
     }
 }

@@ -1,6 +1,5 @@
 package owt.training.fhir.provider;
 
-
 import ca.uhn.fhir.rest.annotation.Create;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Read;

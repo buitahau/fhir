@@ -7,9 +7,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan({"owt.training.fhir"})
-public class ApplicationConfig extends SpringBootServletInitializer {
+public class ApplicationConfiguration extends SpringBootServletInitializer {
 
-    private static final Class<ApplicationConfig> applicationClass = ApplicationConfig.class;
+    private static final Class<ApplicationConfiguration> applicationClass = ApplicationConfiguration.class;
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {

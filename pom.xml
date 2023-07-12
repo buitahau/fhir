@@ -16,6 +16,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<fhir.version>6.6.2</fhir.version>
+		<h2.version>2.2.220</h2.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -82,7 +83,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
+			<version>${h2.version}</version>
 		</dependency>
 	</dependencies>
 
