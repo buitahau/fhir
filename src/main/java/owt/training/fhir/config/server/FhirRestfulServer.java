@@ -7,6 +7,7 @@ import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import owt.training.fhir.interceptor.CustomLoggingInterceptor;
 import owt.training.fhir.provider.PatientProvider;
+import owt.training.fhir.provider.PractitionerProvider;
 
 import javax.servlet.annotation.WebServlet;
 import java.util.ArrayList;
@@ -20,6 +21,9 @@ public class FhirRestfulServer extends RestfulServer {
     @Autowired
     private PatientProvider patientProvider;
 
+    @Autowired
+    private PractitionerProvider practitionerProvider;
+
     @Override
     public void initialize() {
         addResourceProviders();
@@ -31,6 +35,7 @@ public class FhirRestfulServer extends RestfulServer {
         List<IResourceProvider> providers = new ArrayList<>();
 //        providers.add(new MockPatientProvider());
         providers.add(patientProvider);
+        providers.add(practitionerProvider);
         setResourceProviders(providers);
     }
 

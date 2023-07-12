@@ -9,13 +9,16 @@ import owt.training.fhir.constant.enums.GenderEnum;
 import owt.training.fhir.constant.enums.MaritalStatusEnum;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity(name = "patient")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
-public class PatientEntity {
+public class PatientEntity implements Serializable {
+
+    private static final long serialVersionUID = -2116740706126973037L;
 
     @Id
     @GeneratedValue(generator = "uuid2")
