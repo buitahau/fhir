@@ -9,7 +9,7 @@ spring:
     init:
       mode: embedded
   datasource:
-    url: jdbc:h2:file:./training_fhir;DB_CLOSE_ON_EXIT=FALSE;IFEXISTS=FALSE;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:file:./training_fhir
     username: sa
     password:
     driverClassName: org.h2.Driver
@@ -27,3 +27,6 @@ spring:
 server:
   servlet:
     context-path: /fhir
+application:
+  sql:
+    enabled: false # if not h2, set enabled: true
