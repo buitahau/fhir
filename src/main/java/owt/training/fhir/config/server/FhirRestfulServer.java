@@ -6,6 +6,7 @@ import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import owt.training.fhir.interceptor.CustomLoggingInterceptor;
+import owt.training.fhir.provider.EncounterProvider;
 import owt.training.fhir.provider.EpisodeOfCareProvider;
 import owt.training.fhir.provider.PatientProvider;
 import owt.training.fhir.provider.PractitionerProvider;
@@ -28,6 +29,9 @@ public class FhirRestfulServer extends RestfulServer {
     @Autowired
     private EpisodeOfCareProvider episodeOfCareProvider;
 
+    @Autowired
+    private EncounterProvider encounterProvider;
+
     @Override
     public void initialize() {
         addResourceProviders();
@@ -41,6 +45,7 @@ public class FhirRestfulServer extends RestfulServer {
         providers.add(patientProvider);
         providers.add(practitionerProvider);
         providers.add(episodeOfCareProvider);
+        providers.add(encounterProvider);
         setResourceProviders(providers);
     }
 

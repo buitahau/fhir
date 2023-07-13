@@ -4,9 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 
 public enum EpisodeOfCareStatusEnum {
     PLANNED("planned"),
-    WAITLIST("waitlist"),
+    WAIT_LIST("waitlist"),
     ACTIVE("active"),
-    ONHOLD("onhold"),
+    ON_HOLD("onhold"),
     FINISHED("finished"),
     CANCELLED("cancelled"),
     ENTERED_IN_ERROR("entered-in-error");

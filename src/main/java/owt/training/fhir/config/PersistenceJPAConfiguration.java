@@ -20,7 +20,7 @@ import java.util.Properties;
 @Configuration
 @EnableJpaRepositories(basePackages = {"owt.training.fhir.repository"})
 @EnableTransactionManagement
-@ConditionalOnProperty(value = "application.sql.enabled")
+@ConditionalOnProperty(value = "application.sql.enabled", matchIfMissing = true)
 public class PersistenceJPAConfiguration {
 
     @Autowired

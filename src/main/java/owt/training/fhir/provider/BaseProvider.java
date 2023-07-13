@@ -11,6 +11,8 @@ import org.hl7.fhir.instance.model.api.IPrimitiveType;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.InstantType;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import owt.training.fhir.domain.BaseEntity;
 
 import javax.annotation.Nonnull;
@@ -77,5 +79,9 @@ public abstract class BaseProvider implements IResourceProvider {
                 return result.getTotalPages();
             }
         };
+    }
+
+    protected Pageable buildPageable(Integer offset, Integer count) {
+        return PageRequest.of(offset != null ? offset : 0, count != null ? count : 20);
     }
 }

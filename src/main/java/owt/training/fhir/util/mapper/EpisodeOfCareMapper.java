@@ -13,8 +13,14 @@ public class EpisodeOfCareMapper {
     public static EpisodeOfCareEntity convert(EpisodeOfCare theEpisodeOfCare) {
         EpisodeOfCareEntity entity = new EpisodeOfCareEntity();
         entity.setId(theEpisodeOfCare.getId());
-        entity.setPeriodStart(theEpisodeOfCare.getPeriod().getStart().toInstant());
-        entity.setPeriodEnd(theEpisodeOfCare.getPeriod().getEnd().toInstant());
+        if (theEpisodeOfCare.getPeriod() != null) {
+            if (theEpisodeOfCare.getPeriod().getStart() != null) {
+                entity.setPeriodStart(theEpisodeOfCare.getPeriod().getStart().toInstant());
+            }
+            if (theEpisodeOfCare.getPeriod().getEnd() != null) {
+                entity.setPeriodEnd(theEpisodeOfCare.getPeriod().getEnd().toInstant());
+            }
+        }
         entity.setStatus(EpisodeOfCareStatusEnum.fromCode(theEpisodeOfCare.getStatus().getDisplay()));
         PatientEntity patient = new PatientEntity();
         patient.setId(theEpisodeOfCare.getPatient().getId());
@@ -27,8 +33,12 @@ public class EpisodeOfCareMapper {
         episodeOfCare.setId(entity.getId());
 
         Period period = new Period();
-        period.setStart(Date.from(entity.getPeriodStart()));
-        period.setEnd(Date.from(entity.getPeriodEnd()));
+        if (entity.getPeriodStart() != null) {
+            period.setStart(Date.from(entity.getPeriodStart()));
+        }
+        if (entity.getPeriodEnd() != null) {
+            period.setEnd(Date.from(entity.getPeriodEnd()));
+        }
         episodeOfCare.setPeriod(period);
 
         Reference patientReference = new Reference();

@@ -27,7 +27,6 @@ public class MockPatientProvider implements IResourceProvider {
         patients.put(String.valueOf(counter), createPatient("Desmond"));
     }
 
-
     @Read
     public Patient find(@IdParam final IdType id) {
         if (patients.containsKey(id.getIdPart())) {

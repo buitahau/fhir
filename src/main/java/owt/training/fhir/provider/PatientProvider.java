@@ -90,10 +90,6 @@ public class PatientProvider extends BaseProvider {
         return buildIBundleProvider(result, PatientMapper::convert);
     }
 
-    private Pageable buildPageable(Integer offset, Integer count) {
-        return PageRequest.of(offset != null ? offset : 0, count != null ? count : 20);
-    }
-
     private Example<PatientEntity> buildExample(String name) {
         PatientEntity probe = new PatientEntity();
         probe.setName(name);
