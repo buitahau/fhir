@@ -30,3 +30,7 @@ server:
 application:
   sql:
     enabled: false # if not h2, set enabled: true
+jwt:
+  secret: PAijPEaeHbCakqBDwxdFJcpffqOknRS3
+  token:
+    validity: 3600000
