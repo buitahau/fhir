@@ -30,3 +30,11 @@ server:
 application:
   sql:
     enabled: false # if not h2, set enabled: true
+  camel:
+    delay: 1000
+    period: 5000
+camel:
+  component:
+    servlet:
+      mapping:
+        contextPath: /camel
