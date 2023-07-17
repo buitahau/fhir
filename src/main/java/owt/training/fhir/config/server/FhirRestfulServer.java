@@ -15,7 +15,7 @@ import javax.servlet.annotation.WebServlet;
 import java.util.ArrayList;
 import java.util.List;
 
-@WebServlet(urlPatterns = "/*", loadOnStartup = 1)
+@WebServlet(urlPatterns = "/hapi/*", loadOnStartup = 1)
 public class FhirRestfulServer extends RestfulServer {
 
     private static final long serialVersionUID = 1L;
