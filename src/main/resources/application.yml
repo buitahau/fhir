@@ -37,4 +37,7 @@ camel:
   component:
     servlet:
       mapping:
-        contextPath: /camel
+        context-path: /camel/*
+  dataformat:
+    jackson:
+      auto-discover-object-mapper: true
