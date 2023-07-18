@@ -24,6 +24,10 @@ spring:
   h2:
     console:
       enabled: true
+  activemq:
+    broker-url: tcp://localhost:61616
+    username: admin
+    password: admin
 server:
   servlet:
     context-path: /fhir
