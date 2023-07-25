@@ -17,6 +17,9 @@
 		<java.version>11</java.version>
 		<fhir.version>6.6.2</fhir.version>
 		<h2.version>2.2.220</h2.version>
+		<azure-servicebus-jms-spring-boot-starter.version>2.3.5</azure-servicebus-jms-spring-boot-starter.version>
+		<azure-servicebus-jms.version></azure-servicebus-jms.version>
+		<spring-jms.version>4.3.3.RELEASE</spring-jms.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -84,6 +87,23 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>${h2.version}</version>
+		</dependency>
+		<!-- Azure Message Bus-->
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>azure-servicebus-jms-spring-boot-starter</artifactId>
+			<version>${azure-servicebus-jms-spring-boot-starter.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.azure</groupId>
+			<artifactId>azure-servicebus-jms</artifactId>
+			<version>${azure-servicebus-jms.version}</version>
+		</dependency>
+		<!-- JMS-->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+			<version>${spring-jms.version}</version>
 		</dependency>
 	</dependencies>
 
