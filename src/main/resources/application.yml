@@ -26,7 +26,7 @@ spring:
       enabled: true
   jms:
     servicebus:
-      connection-string: Endpoint=sb://fhir-premium.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=P4KhxZPbR/2wJZoEcgNN6xgLbmc1c4owr+ASbA2TLUM=
+      connection-string: Endpoint=sb://fhir-test.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=Z4hx10BcaikKOXWO0dnXbpJ/f3GVsVGLq+ASbADDInI=
       idle-timeout: 60000
 server:
   servlet:

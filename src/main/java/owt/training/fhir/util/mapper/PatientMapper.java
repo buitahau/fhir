@@ -8,6 +8,7 @@ import owt.training.fhir.constant.enums.MaritalStatusEnum;
 import owt.training.fhir.domain.PatientEntity;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,10 @@ public class PatientMapper {
             maritalStatus.setCoding(maritalStatusCodes);
             patient.setMaritalStatus(maritalStatus);
         }
+
+        Meta meta = new Meta();
+        meta.setLastUpdatedElement(new InstantType(Calendar.getInstance()));
+        patient.setMeta(meta);
 
         return patient;
     }

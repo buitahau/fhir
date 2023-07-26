@@ -18,13 +18,23 @@
 		<fhir.version>6.6.2</fhir.version>
 		<h2.version>2.2.220</h2.version>
 		<azure-servicebus-jms-spring-boot-starter.version>2.3.5</azure-servicebus-jms-spring-boot-starter.version>
-		<azure-servicebus-jms.version></azure-servicebus-jms.version>
+		<azure-servicebus-jms.version>1.0.0</azure-servicebus-jms.version>
 		<spring-jms.version>4.3.3.RELEASE</spring-jms.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
