@@ -1,3 +1,9 @@
+### Endpoints
+
+#### Actuator prometheus
+
+/actuator/prometheus
+
 ### Docker
 
 #### Postgres and PGAdmin

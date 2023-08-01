@@ -1,3 +1,9 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include:
+          - prometheus
 server:
   port: 8081
   servlet:
@@ -26,7 +32,6 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/auth/realms/Fhir
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
-
 application:
   token:
     converter:
