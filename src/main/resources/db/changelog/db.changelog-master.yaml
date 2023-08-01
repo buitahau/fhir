@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: sql/patient.sql
+      relativeToChangelogFile: true

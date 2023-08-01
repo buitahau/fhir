@@ -3,6 +3,23 @@ server:
   servlet:
     context-path: /domain-resource-service
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/test_local?currentSchema=schema1
+    user: root
+    password: 123456
+    driverClassName: org.postgresql.Driver
+  liquibase:
+    url: jdbc:postgresql://localhost:5432/test_local?currentSchema=schema1
+    user: root
+    password: 123456
+    driverClassName: org.postgresql.Driver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          lob:
+            non_contextual_creation: true
   security:
     oauth2:
       resourceserver:
