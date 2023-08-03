@@ -32,7 +32,23 @@ spring:
         jwt:
           issuer-uri: http://localhost:8080/auth/realms/Fhir
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            connectTimeout: 5000
+            readTimeout: 5000
+            loggerLevel: full
 application:
   token:
     converter:
       resource-id: fhir-api
+  opa:
+    authz:
+      url: http://localhost:8181/v1/data
+logging:
+  level:
+    root: INFO
+    owt.training.fhir: DEBUG
+    org.springframework.security.web: DEBUG

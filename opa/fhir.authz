@@ -1,0 +1,48 @@
+package owt.training.fhir.authz
+
+import future.keywords
+import future.keywords.every
+
+# Not authorized by default
+default authorized = false
+
+authorized = true {
+  #  count(deny) == 0
+    count(allow) > 0
+}
+
+# Allow access to public
+allow["public"] {
+    regex.match("^/public/.*", input.uri)
+}
+
+#token = {"payload": payload} {
+#    [header, payload, signature] := io.jwt.decode(input.jwt.tokenValue)
+#}
+
+# Validate only admin can get all patients
+allow["admin_get_all_patients"] {
+    input.method == "GET"
+    regex.match("/Patient", input.uri)
+    allowed_roles := ["ROLE_ADMIN"]
+    roles := {role | some role in input.authorities; role.authority = allowed_roles[_]}
+    count(roles) == 1
+}
+
+# Validate only patient or practitioner can get patient detail
+allow["get_patient_detail"] {
+    input.method == "GET"
+    regex.match("^/Patient/.+", input.uri)
+    allowed_roles := ["ROLE_practitioner", "ROLE_patient"]
+    roles := {role | some role in input.authorities; role.authority = allowed_roles[_]}
+    count(roles) > 0
+}
+
+# Validate only practitioner can get patient detail
+allow["get_practitioner_detail"] {
+    input.method == "GET"
+    regex.match("^/Practitioner/.+", input.uri)
+    allowed_roles := ["ROLE_practitioner"]
+    roles := {role | some role in input.authorities; role.authority = allowed_roles[_]}
+    count(roles) > 0
+}

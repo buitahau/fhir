@@ -28,6 +28,10 @@ Then, create keycloak database.
 
 Go to http://localhost:8080/ with username/password is defined in .env
 
+### OPA
+
+``docker run -p 8181:8181 openpolicyagent/opa run --server --log-level debug``
+
 ---
 
 ### Deploy
@@ -47,3 +51,5 @@ To get the external IP, tunnel minikube ``minikube tunnel``, get the external IP
 Prometheus Grafana https://refactorfirst.com/spring-boot-prometheus-grafana
 
 Fluentd https://arnoldgalovics.com/java-multiline-logs-fluentd/
+
+OPA https://jcompetence.se/2023/06/22/open-policy-agent-opa-with-spring-boot-3/
