@@ -6,7 +6,6 @@ import ca.uhn.fhir.rest.api.PatchTypeEnum;
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
-import ca.uhn.fhir.validation.FhirValidator;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Patient;
@@ -26,8 +25,7 @@ public class PatientProvider extends BaseProvider {
 
     private PatientService patientService;
 
-    public PatientProvider(PatientService patientService, FhirValidator fhirValidator) {
-        super(fhirValidator);
+    public PatientProvider(PatientService patientService) {
         this.patientService = patientService;
     }
 
@@ -45,14 +43,12 @@ public class PatientProvider extends BaseProvider {
 
     @Create
     public MethodOutcome create(@ResourceParam Patient thePatient) {
-        validate(thePatient);
         PatientEntity entity = patientService.create(PatientMapper.convert(thePatient));
         return MethodOutcomeUtil.buildMethodOutcome(entity);
     }
 
     @Update
     public MethodOutcome update(@IdParam IdType theId, @ResourceParam Patient thePatient) {
-        validate(thePatient);
         PatientEntity entity = patientService.update(theId.getIdPart(), PatientMapper.convert(thePatient));
         return MethodOutcomeUtil.buildMethodOutcome(entity);
     }

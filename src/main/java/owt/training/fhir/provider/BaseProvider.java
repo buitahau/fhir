@@ -2,13 +2,9 @@ package owt.training.fhir.provider;
 
 import ca.uhn.fhir.rest.api.server.IBundleProvider;
 import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
-import ca.uhn.fhir.validation.FhirValidator;
 import ca.uhn.fhir.validation.SingleValidationMessage;
-import ca.uhn.fhir.validation.ValidationResult;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
-import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.InstantType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,20 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class BaseProvider implements IResourceProvider {
-    private FhirValidator fhirValidator;
-
-    protected BaseProvider(FhirValidator fhirValidator) {
-        this.fhirValidator = fhirValidator;
-    }
-
-    protected void validate(DomainResource domainResource) {
-        ValidationResult validationResult = fhirValidator.validateWithResult(domainResource);
-        if (validationResult.isSuccessful()) {
-            return;
-        }
-
-        throw new InvalidRequestException(buildErrorMessage(validationResult.getMessages()));
-    }
 
     private String buildErrorMessage(List<SingleValidationMessage> messages) {
         StringBuilder errorMessageBuilder = new StringBuilder();
