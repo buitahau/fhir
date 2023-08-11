@@ -28,18 +28,20 @@ public class KeycloakJwtTokenConverter implements Converter<Jwt, JwtAuthenticati
 
     @Override
     public JwtAuthenticationToken convert(@NonNull Jwt jwt) {
-        Stream<SimpleGrantedAuthority> accesses = Stream.of(jwt)
-                .map(token -> token.getClaimAsMap(CLAIM_RESOURCE_ACCESS))
-                .map(claimMap -> (Map<String, Object>) claimMap.get(tokenConverterProperties.getResourceId()))
-                .map(resourceData -> (Collection<String>) resourceData.get(CLAIM_ROLES))
-                .flatMap(Collection::stream)
-                .map(role -> new SimpleGrantedAuthority(ROLE_PREFIX + role))
-                .distinct();
+//        Stream<SimpleGrantedAuthority> accesses = Stream.of(jwt)
+//                .map(token -> token.getClaimAsMap(CLAIM_RESOURCE_ACCESS))
+//                .map(claimMap -> (Map<String, Object>) claimMap.get(tokenConverterProperties.getResourceId()))
+//                .map(resourceData -> (Collection<String>) resourceData.get(CLAIM_ROLES))
+//                .flatMap(Collection::stream)
+//                .map(role -> new SimpleGrantedAuthority(ROLE_PREFIX + role))
+//                .distinct();
 
-        Set<GrantedAuthority> authorities =
-                Stream.concat(new JwtGrantedAuthoritiesConverter().convert(jwt).stream(), accesses)
-                        .collect(Collectors.toSet());
+//        Set<GrantedAuthority> authorities =
+//                Stream.concat(new JwtGrantedAuthoritiesConverter().convert(jwt).stream(), accesses)
+//                        .collect(Collectors.toSet());
 
+        Set<GrantedAuthority> authorities = new JwtGrantedAuthoritiesConverter().convert(jwt).stream()
+                .collect(Collectors.toSet());
         return new JwtAuthenticationToken(jwt, authorities);
     }
 }

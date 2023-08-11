@@ -14,7 +14,9 @@ public class FHIRClaim {
 
     private List<String> scope;
 
-    private boolean isCara;
+    private Boolean isCara;
+
+    private String resourceName;
 
     public String getAccountUrn() {
         return accountUrn;
@@ -57,11 +59,22 @@ public class FHIRClaim {
     }
 
     public boolean isCara() {
+        if (isCara == null) {
+            return false;
+        }
         return isCara;
     }
 
-    public void setCara(boolean cara) {
+    public void setCara(Boolean cara) {
         isCara = cara;
+    }
+
+    public String getResourceName() {
+        return resourceName;
+    }
+
+    public void setResourceName(String resourceName) {
+        this.resourceName = resourceName;
     }
 
     @Override

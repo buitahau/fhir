@@ -36,9 +36,9 @@ public class PatientProvider extends BaseProvider {
 
     @Read
     public Patient findById(@IdParam IdType theId) {
-        PatientEntity entity = patientService.findById(theId.getIdPart())
-                .orElseThrow(() -> new ResourceNotFoundException(theId));
-        return PatientMapper.convert(entity);
+        Patient patient = new Patient();
+        patient.setId(theId.getIdPart());
+        return patient;
     }
 
     @Create

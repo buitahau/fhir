@@ -30,6 +30,7 @@ public class JWTTokenUtil {
         jwtDto.setGroups(jwtClaimsSet.getStringListClaim("groups"));
         jwtDto.setScope(Arrays.stream(jwtClaimsSet.getStringClaim("fhirscope").split(" ")).collect(Collectors.toList()));
         jwtDto.setCara(jwtClaimsSet.getBooleanClaim("isCara"));
+        jwtDto.setResourceName(jwtClaimsSet.getStringClaim("resourceName"));
         return jwtDto;
     }
 

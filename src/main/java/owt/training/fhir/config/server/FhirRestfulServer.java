@@ -6,8 +6,9 @@ import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 //import owt.training.fhir.auth.interceptor.FhirAuthorizationInterceptor;
-import owt.training.fhir.interceptor.CustomLoggingInterceptor;
+import owt.training.fhir.auth.dto.FhirVaultProperties;
 import owt.training.fhir.interceptor.FhirAuthorizationInterceptor;
+import owt.training.fhir.interceptor.FhirVaultAuditInterceptor;
 import owt.training.fhir.provider.PatientProvider;
 
 import javax.servlet.annotation.WebServlet;
@@ -19,7 +20,7 @@ public class FhirRestfulServer extends RestfulServer {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String PATH_FILES = "/home/owt-hau/work/projects/fhir/08CARA-XXXX/fhir_resources";
+    private static final String PATH_FILES = "/home/owt-haubui/Documents/work/projects/fhir-vault/resource/08_CARA-XXXX/fhir_resource_demo";
 
     @Autowired
     private PatientProvider patientProvider;
@@ -38,9 +39,9 @@ public class FhirRestfulServer extends RestfulServer {
     }
 
     private void registerInterceptors() {
-        registerInterceptor(new CustomLoggingInterceptor());
-        registerInterceptor(new ResponseHighlighterInterceptor());
-        registerInterceptor(new FhirAuthorizationInterceptor(PATH_FILES));
+        registerInterceptor(new FhirVaultAuditInterceptor());
+//        registerInterceptor(new ResponseHighlighterInterceptor());
+        registerInterceptor(new FhirAuthorizationInterceptor(new FhirVaultProperties(PATH_FILES)));
     }
 
     private void setVariousConfig() {
