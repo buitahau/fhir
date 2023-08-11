@@ -22,6 +22,7 @@ public class SecurityConfiguration {
         return httpSecurity
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
+                        .antMatchers("/ping").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

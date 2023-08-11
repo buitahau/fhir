@@ -3,6 +3,7 @@ version: '3'
 services:
   keycloak:
     image: quay.io/keycloak/keycloak:legacy
+    hostname: keycloak
     environment:
       DB_VENDOR: ${KEYCLOAK_VENDOR}
       DB_ADDR: ${KEYCLOAK_ADDRESS}

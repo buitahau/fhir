@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  fhir-vault:
+    image: buitahau/fhir-vault:5
+    environment:
+      SERVER_PORT: 8081
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI: http://keycloak:8080/auth/realms/Fhir
+#      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK-SET-URI: http://docker-keycloak-1:8080/auth/realms/Fhir/protocol/openid-connect/certs
+    ports:
+      - 8081:8081

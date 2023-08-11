@@ -33,3 +33,9 @@ Then, create keycloak database.
 ``docker-compose -f docker-compose-keycloak.yaml up``
 
 Go to http://localhost:8080/ with username/password is defined in .env
+
+#### Elasticsearch and Kibana
+
+``docker-compose -f docker-compose-elasticsearch.yaml up``
+
+Go to http://localhost:9200/ for elasticsearch and http://localhost:5601/ for Kibana

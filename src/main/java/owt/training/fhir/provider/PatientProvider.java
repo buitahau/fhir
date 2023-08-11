@@ -9,19 +9,27 @@ import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import owt.training.fhir.domain.PatientEntity;
+import owt.training.fhir.domain.elasticsearch.PatientDocument;
+import owt.training.fhir.repository.elasticsearch.PatientElasticsearchRepository;
 import owt.training.fhir.service.PatientService;
 import owt.training.fhir.util.MethodOutcomeUtil;
 import owt.training.fhir.util.mapper.PatientMapper;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 public class PatientProvider extends BaseProvider {
+
+    @Autowired
+    private PatientElasticsearchRepository patientElasticsearchRepository;
 
     private PatientService patientService;
 
@@ -36,9 +44,18 @@ public class PatientProvider extends BaseProvider {
 
     @Read
     public Patient findById(@IdParam IdType theId) {
-        PatientEntity entity = patientService.findById(theId.getIdPart())
-                .orElseThrow(() -> new ResourceNotFoundException(theId));
-        return PatientMapper.convert(entity);
+        Patient patient = new Patient();
+        patient.setId(theId.getIdPart());
+
+//        PatientDocument patientDocument = new PatientDocument();
+//        patientDocument.setId(UUID.randomUUID().toString());
+//        patientDocument.setName("Hau Bui");
+//        patientDocument.setTelecom("0933656289");
+//        patientElasticsearchRepository.save(patientDocument);
+
+//        Page<PatientDocument> searchResult = patientElasticsearchRepository.findByName("Hau Bui", Pageable.ofSize(10));
+
+        return patient;
     }
 
     @Create
