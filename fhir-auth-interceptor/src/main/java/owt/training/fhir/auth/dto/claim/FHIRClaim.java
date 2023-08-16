@@ -1,4 +1,4 @@
-package owt.training.fhir.auth.dto;
+package owt.training.fhir.auth.dto.claim;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ public class FHIRClaim {
 
     private List<String> scope;
 
-    private Boolean isCara;
+    private String resourceType;
 
     public String getAccountUrn() {
         return accountUrn;
@@ -56,15 +56,12 @@ public class FHIRClaim {
         this.scope = scope;
     }
 
-    public boolean isCara() {
-        if (isCara == null) {
-            return false;
-        }
-        return isCara;
+    public String getResourceType() {
+        return resourceType;
     }
 
-    public void setCara(Boolean cara) {
-        isCara = cara;
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
     }
 
     @Override
@@ -75,7 +72,7 @@ public class FHIRClaim {
                 ", mpildUrn='" + mpildUrn + '\'' +
                 ", groups=" + groups +
                 ", scope=" + scope +
-                ", isCara=" + isCara +
+                ", resourceType=" + resourceType +
                 '}';
     }
 }

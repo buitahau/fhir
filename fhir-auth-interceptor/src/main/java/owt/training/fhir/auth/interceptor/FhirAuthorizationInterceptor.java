@@ -1,23 +1,25 @@
 package owt.training.fhir.auth.interceptor;
 
-import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.fhirpath.IFhirPath;
 import ca.uhn.fhir.interceptor.api.Pointcut;
-import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.api.RestOperationTypeEnum;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
-import ca.uhn.fhir.rest.server.interceptor.auth.AuthorizationInterceptor;
-import ca.uhn.fhir.rest.server.interceptor.auth.PolicyEnum;
-import org.apache.commons.collections4.CollectionUtils;
+import ca.uhn.fhir.rest.server.interceptor.auth.*;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r5.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import owt.training.fhir.auth.dto.FHIRClaim;
-import owt.training.fhir.auth.dto.ReferenceWrapper;
+import owt.training.fhir.auth.constant.FhirVaultConstant;
+import owt.training.fhir.auth.dto.FhirVaultDto;
+import owt.training.fhir.auth.dto.properties.FhirVaultProperties;
+import owt.training.fhir.auth.dto.wrapper.ReferenceWrapper;
+import owt.training.fhir.auth.dto.wrapper.VerdictWrapper;
+import owt.training.fhir.auth.interceptor.evaluate.EvaluationFactory;
+import owt.training.fhir.auth.mapping.HttpMethodMapping;
 import owt.training.fhir.auth.util.FHIRFileUtil;
-import owt.training.fhir.auth.util.JWTTokenUtil;
+import owt.training.fhir.auth.util.FhirContextUtil;
+import owt.training.fhir.auth.validation.PermissionValidation;
 
 import java.io.File;
 import java.util.*;
@@ -27,72 +29,141 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(FhirAuthorizationInterceptor.class);
 
-    private final String pathFiles;
+    private final FhirVaultProperties properties;
 
-    private final IFhirPath iFhirPath;
+    private static final IFhirPath iFhirPath;
 
-    private final IParser iParser;
+    static {
+        iFhirPath = FhirContextUtil.getiFhirPath();
+    }
 
-    public FhirAuthorizationInterceptor(String pathFiles) {
-        this.pathFiles = pathFiles;
-        FhirContext ctx = FhirContext.forR5Cached();
-        iFhirPath = ctx.newFhirPath();
-        iParser = ctx.newJsonParser();
+    public FhirAuthorizationInterceptor(FhirVaultProperties properties) {
+        this.properties = properties;
     }
 
     @Override
-    public Verdict applyRulesAndReturnDecision(RestOperationTypeEnum theOperation, RequestDetails theRequestDetails, IBaseResource theInputResource, IIdType theInputResourceId, IBaseResource theOutputResource, Pointcut thePointcut) {
-        // Get principal, namespaces, roles from jwt
-        FHIRClaim jwtDto = JWTTokenUtil.parsingJwtToken(theRequestDetails);
-        log.info("FhirAuthorizationInterceptor[JWT information:{}]", jwtDto);
+    public Verdict applyRulesAndReturnDecision(RestOperationTypeEnum theOperation, RequestDetails theRequestDetails,
+                                               IBaseResource theInputResource, IIdType theInputResourceId,
+                                               IBaseResource theOutputResource, Pointcut thePointcut) {
 
-        // FHIR operation
-        String fhirOperation = theRequestDetails.getRequestType().name();
-        log.info("FhirAuthorizationInterceptor[fhirOperation:{}]", fhirOperation);
+        FhirVaultDto authorizationInterceptorDto =
+                new FhirVaultDto(theRequestDetails);
 
-        // FHIR resource
-        String resourceName = theRequestDetails.getResourceName();
-        String requestPath = theRequestDetails.getRequestPath();
-        // get from body, header or url
-        String resourceIdentifier = requestPath
-                .replace(resourceName, "").replace("/", "");
-        log.info("FhirAuthorizationInterceptor[resourceName:{}]", resourceName);
-        log.info("FhirAuthorizationInterceptor[resourceIdentifier:{}]", resourceIdentifier);
-
-        // Tenant
-        String tenant = theRequestDetails.getTenantId();
-        log.info("FhirAuthorizationInterceptor[tenant:{}]", tenant);
-
-        return evaluate(jwtDto, resourceIdentifier);
+        return evaluate(authorizationInterceptorDto);
     }
 
-    private Verdict evaluate(FHIRClaim jwtDto, String resourceIdentifier) {
-        DomainResource userLogin = buildUserLogin(jwtDto);
+    private Verdict evaluate(FhirVaultDto authorizationInterceptorDto) {
+        DomainResource userLogging = authorizationInterceptorDto.buildUserLogging();
 
-        String fileNamePrefix = resourceIdentifier + "_permission_transactional";
-        List<File> transactionFiles = FHIRFileUtil.findFiles(pathFiles, fileNamePrefix);
+        VerdictWrapper transactionalChecked = evaluateTransactional(userLogging,
+                authorizationInterceptorDto.getResourceIdentifier());
 
-        Map<ReferenceWrapper, Set<CodeableConcept>> permitRules = parseRulesFromPermissions(transactionFiles,
-                Enumerations.ConsentProvisionType.PERMIT);
-        Map<ReferenceWrapper, Set<CodeableConcept>> denyRules = parseRulesFromPermissions(transactionFiles,
-                Enumerations.ConsentProvisionType.DENY);
-
-        Set<CodeableConcept> deny = compareConditionAndGetPolicy(userLogin, denyRules);
-        Set<CodeableConcept> allow = compareConditionAndGetPolicy(userLogin, permitRules);
-
-        return evaluate(deny, allow);
-    }
-
-    private Set<CodeableConcept> compareConditionAndGetPolicy(DomainResource userLogin,
-                                                              Map<ReferenceWrapper, Set<CodeableConcept>> rules) {
-
-        Set<CodeableConcept> result = new HashSet<>();
-        for (Map.Entry<ReferenceWrapper, Set<CodeableConcept>> entry : rules.entrySet()) {
-            if (evaluate(userLogin, entry.getKey().getReference())) {
-                result.addAll(entry.getValue());
-            }
+        if (transactionalChecked.isDeny()) {
+            return transactionalChecked.buildVerdict();
         }
-        return result;
+
+        VerdictWrapper consentChecked = evaluateConsent(userLogging,
+                authorizationInterceptorDto.getResourceIdentifier());
+
+        if (consentChecked.isDeny()) {
+            return consentChecked.buildVerdict();
+        }
+
+        return evaluateHttpMapping(authorizationInterceptorDto, transactionalChecked, consentChecked);
+    }
+
+    private Verdict evaluateHttpMapping(FhirVaultDto authorizationInterceptorDto,
+                                        VerdictWrapper transactionalChecked, VerdictWrapper consentChecked) {
+
+        List<String> policies = HttpMethodMapping.getPolicies(authorizationInterceptorDto.getHttpMethod());
+
+        boolean containsInTransactional = sameAtLeastOne(transactionalChecked.getAllowActions(), policies);
+
+        boolean containsInConsent = sameAtLeastOne(consentChecked.getAllowActions(), policies);
+
+        if (containsInTransactional || containsInConsent) {
+            return new VerdictWrapper(PolicyEnum.ALLOW).buildVerdict();
+        }
+
+        return new VerdictWrapper(PolicyEnum.DENY)
+                .addToDenyActions(FhirVaultConstant.NOT_MAP_HTTP_METHOD_MESSAGE)
+                .buildVerdict();
+    }
+
+    private boolean sameAtLeastOne(Collection<CodeableConcept> actions, List<String> httpMethodPolices) {
+        return actions.stream()
+                .anyMatch(codeableConcept -> codeableConcept.getCoding()
+                        .stream()
+                        .anyMatch(coding -> httpMethodPolices.contains(coding.getCode())));
+    }
+
+    private VerdictWrapper evaluateConsent(DomainResource userLogging, String resourceIdentifier) {
+        String fileNamePrefix = String.format(properties.getPrefixConsentFileName(), resourceIdentifier);
+        return evaluatePermission(userLogging, fileNamePrefix);
+    }
+
+    private VerdictWrapper evaluateTransactional(DomainResource userLogging, String resourceIdentifier) {
+        String fileNamePrefix = String.format(properties.getPrefixTransactionFileName(), resourceIdentifier);
+        return evaluatePermission(userLogging, fileNamePrefix);
+    }
+
+    private VerdictWrapper evaluatePermission(DomainResource userLogging, String fileNamePrefix) {
+        List<File> permissionFiles = FHIRFileUtil.findFiles(properties.getFilePath(), fileNamePrefix);
+        return evaluate(userLogging, permissionFiles);
+    }
+
+    private VerdictWrapper evaluate(DomainResource userLogging, List<File> permissionFiles) {
+        List<VerdictWrapper> checkedResult = new ArrayList<>();
+
+        for (File file : permissionFiles) {
+            Permission permission = FHIRFileUtil.readResource(file, Permission.class);
+            if (!PermissionValidation.isValid(permission)) {
+                continue;
+            }
+
+            Map<ReferenceWrapper, Set<CodeableConcept>> permitPoliciesOfResource = parsePermission(permission,
+                    Enumerations.ConsentProvisionType.PERMIT);
+            Map<ReferenceWrapper, Set<CodeableConcept>> denyPoliciesOfResource = parsePermission(permission,
+                    Enumerations.ConsentProvisionType.DENY);
+
+            Set<CodeableConcept> userLoggingAllowActions =
+                    evaluateXPathExpressionAndCollectActions(userLogging, permitPoliciesOfResource);
+            Set<CodeableConcept> userLoggingDenyActions =
+                    evaluateXPathExpressionAndCollectActions(userLogging, denyPoliciesOfResource);
+
+            checkedResult.add(evaluate(permission.getCombining(), userLoggingAllowActions, userLoggingDenyActions));
+        }
+
+        return makeDecision(checkedResult);
+    }
+
+    private VerdictWrapper makeDecision(List<VerdictWrapper> checkedResult) {
+        if (checkedResult.stream().allMatch(verdict -> PolicyEnum.ALLOW.equals(verdict.getTheDecision()))) {
+            Set<CodeableConcept> allowActions = checkedResult
+                    .stream()
+                    .flatMap(verdictWrapper -> verdictWrapper.getAllowActions().stream())
+                    .collect(Collectors.toSet());
+            return new VerdictWrapper(PolicyEnum.ALLOW).allowActions(allowActions);
+        }
+
+        Set<CodeableConcept> denyActions = checkedResult
+                .stream()
+                .filter(verdictWrapper -> PolicyEnum.DENY.equals(verdictWrapper.getTheDecision()))
+                .flatMap(verdictWrapper -> verdictWrapper.getDenyActions().stream())
+                .collect(Collectors.toSet());
+
+        return new VerdictWrapper(PolicyEnum.DENY).denyActions(denyActions);
+    }
+
+    private Set<CodeableConcept> evaluateXPathExpressionAndCollectActions(DomainResource userLogin,
+                                                                          Map<ReferenceWrapper, Set<CodeableConcept>> rules) {
+
+        return rules
+                .entrySet()
+                .stream()
+                .filter(entry -> evaluate(userLogin, entry.getKey().getReference()))
+                .flatMap(entry -> entry.getValue().stream())
+                .collect(Collectors.toSet());
     }
 
     private boolean evaluate(DomainResource userLogin, Reference reference) {
@@ -103,78 +174,20 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
                 .booleanValue();
     }
 
-    private DomainResource buildUserLogin(FHIRClaim jwtDto) {
-        Person person = new Person();
+    private Map<ReferenceWrapper, Set<CodeableConcept>> parsePermission(Permission permission,
+                                                                        Enumerations.ConsentProvisionType type) {
 
-        addIdentifier(person, "accountUrn", jwtDto.getAccountUrn());
-        addIdentifier(person, "glnUrn", jwtDto.getGlnUrn());
-        addIdentifier(person, "mpildUrn", jwtDto.getMpildUrn());
-
-        addExtension(person, "group", jwtDto.getGroups());
-        addExtension(person, "scope", jwtDto.getScope());
-
-        return person;
-    }
-
-    private void addIdentifier(Person person, String systemIdentifier, String valueIdentifier) {
-        Identifier identifier = new Identifier();
-        identifier.setSystem(systemIdentifier);
-        identifier.setValue(valueIdentifier);
-
-        if (person.getIdentifier() == null) {
-            person.setIdentifier(new ArrayList<>());
-        }
-
-        person.getIdentifier().add(identifier);
-    }
-
-    private void addExtension(Person person, String extensionCode, List<String> extensionValue) {
-        Extension extension = new Extension();
-        extension.setId(extensionCode);
-
-        CodeableConcept codeableConcept = new CodeableConcept();
-        extension.setValue(codeableConcept);
-
-        for (String value : extensionValue) {
-            Coding coding = new Coding();
-            coding.setCode(value);
-            codeableConcept.addCoding(coding);
-        }
-
-        person.addExtension(extension);
-    }
-
-    private Map<ReferenceWrapper, Set<CodeableConcept>> parseRulesFromPermissions(List<File> permissionFiles,
-                                                                                  Enumerations.ConsentProvisionType consentProvisionType) {
-
-        Map<ReferenceWrapper, Set<CodeableConcept>> result = new HashMap<>();
-        for (File file : permissionFiles) {
-            Permission permissionTransaction = FHIRFileUtil.readResource(file, Permission.class);
-            Map<ReferenceWrapper, List<CodeableConcept>> rules = parsePermission(permissionTransaction, consentProvisionType);
-            for (Map.Entry<ReferenceWrapper, List<CodeableConcept>> entry : rules.entrySet()) {
-                if (!result.containsKey(entry.getKey())) {
-                    result.put(entry.getKey(), new HashSet<>(entry.getValue()));
-                } else {
-                    result.get(entry.getKey()).addAll(entry.getValue());
-                }
-            }
-        }
-        return result;
-    }
-
-    private Map<ReferenceWrapper, List<CodeableConcept>> parsePermission(Permission permission,
-                                                                         Enumerations.ConsentProvisionType type) {
-
-        List<Permission.RuleActivityComponent> permitActivities = permission.getRule()
+        List<Permission.RuleActivityComponent> rulesActivities = permission.getRule()
                 .stream()
                 .filter(ruleComponent -> ruleComponent.getType() == type)
+                .filter(ruleComponent -> PermissionValidation.isValid(ruleComponent))
                 .flatMap(ruleComponent -> ruleComponent.getActivity().stream())
                 .collect(Collectors.toList());
 
-        Map<ReferenceWrapper, List<CodeableConcept>> mapRules = new HashMap<>();
-        for (Permission.RuleActivityComponent component : permitActivities) {
+        Map<ReferenceWrapper, Set<CodeableConcept>> mapRules = new HashMap<>();
+        for (Permission.RuleActivityComponent component : rulesActivities) {
             List<Reference> actor = component.getActor();
-            List<CodeableConcept> action = component.getAction();
+            Set<CodeableConcept> action = new HashSet<>(component.getAction());
             for (Reference reference : actor) {
                 mapRules.put(new ReferenceWrapper(reference), action);
             }
@@ -182,10 +195,9 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
         return mapRules;
     }
 
-    private Verdict evaluate(Set<CodeableConcept> deny, Set<CodeableConcept> allow) {
-        if (CollectionUtils.isEmpty(deny) && CollectionUtils.isNotEmpty(allow)) {
-            return new Verdict(PolicyEnum.ALLOW, null);
-        }
-        return new Verdict(PolicyEnum.DENY, null);
+    private VerdictWrapper evaluate(Permission.PermissionRuleCombining combining, Set<CodeableConcept> allows,
+                                    Set<CodeableConcept> denies) {
+
+        return EvaluationFactory.get(combining).evaluate(allows, denies);
     }
 }

@@ -4,7 +4,8 @@ import ca.uhn.fhir.rest.api.server.RequestDetails;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
-import owt.training.fhir.auth.dto.FHIRClaim;
+import owt.training.fhir.auth.dto.claim.FHIRClaim;
+import owt.training.fhir.auth.exception.FhirVaultException;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ public class JWTTokenUtil {
             JWTClaimsSet jwtClaimsSet = getJWTClaimSet(jwtToken);
             return getFhirClaim(jwtClaimsSet);
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            throw new FhirVaultException("Error in parsing jwt", e);
         }
     }
 
@@ -30,7 +31,7 @@ public class JWTTokenUtil {
         jwtDto.setGroups(jwtClaimsSet.getStringListClaim("groups"));
         jwtDto.setScope(Arrays.stream(jwtClaimsSet.getStringClaim("fhirscope").split(" "))
                 .collect(Collectors.toList()));
-        jwtDto.setCara(jwtClaimsSet.getBooleanClaim("isCara"));
+        jwtDto.setResourceType(jwtClaimsSet.getStringClaim("resourceType"));
         return jwtDto;
     }
 
