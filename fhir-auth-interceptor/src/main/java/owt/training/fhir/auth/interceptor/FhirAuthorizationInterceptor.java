@@ -68,8 +68,8 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
             return consentChecked.buildVerdict();
         }
 
-        return HttpMethodMappingEvaluation.evaluateHttpMapping(authorizationInterceptorDto, transactionalChecked,
-                consentChecked);
+        return new HttpMethodMappingEvaluation(properties.getHttpMethodMapping())
+                .evaluateHttpMapping(authorizationInterceptorDto, transactionalChecked, consentChecked);
     }
 
     private VerdictWrapper evaluateConsent(DomainResource userLogging, String resourceIdentifier) {
