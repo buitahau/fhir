@@ -20,13 +20,12 @@ public class FhirVaultDto {
         this.theRequestDetails = theRequestDetails;
     }
 
-    public FHIRClaim getClaim() {
+    public void getClaim() {
         if (claim != null) {
-            return claim;
+            return;
         }
 
         claim = JWTTokenUtil.parsingJwtToken(theRequestDetails);
-        return claim;
     }
 
     public String getResourceIdentifier() {

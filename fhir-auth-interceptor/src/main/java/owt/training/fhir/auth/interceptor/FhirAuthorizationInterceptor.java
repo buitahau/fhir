@@ -10,13 +10,13 @@ import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r5.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import owt.training.fhir.auth.constant.FhirVaultConstant;
 import owt.training.fhir.auth.dto.FhirVaultDto;
 import owt.training.fhir.auth.dto.properties.FhirVaultProperties;
+import owt.training.fhir.auth.dto.wrapper.ListVerdictWrapper;
 import owt.training.fhir.auth.dto.wrapper.ReferenceWrapper;
 import owt.training.fhir.auth.dto.wrapper.VerdictWrapper;
 import owt.training.fhir.auth.interceptor.evaluate.EvaluationFactory;
-import owt.training.fhir.auth.mapping.HttpMethodMapping;
+import owt.training.fhir.auth.mapping.HttpMethodMappingEvaluation;
 import owt.training.fhir.auth.util.FHIRFileUtil;
 import owt.training.fhir.auth.util.FhirContextUtil;
 import owt.training.fhir.auth.validation.PermissionValidation;
@@ -46,8 +46,7 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
                                                IBaseResource theInputResource, IIdType theInputResourceId,
                                                IBaseResource theOutputResource, Pointcut thePointcut) {
 
-        FhirVaultDto authorizationInterceptorDto =
-                new FhirVaultDto(theRequestDetails);
+        FhirVaultDto authorizationInterceptorDto = new FhirVaultDto(theRequestDetails);
 
         return evaluate(authorizationInterceptorDto);
     }
@@ -69,32 +68,8 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
             return consentChecked.buildVerdict();
         }
 
-        return evaluateHttpMapping(authorizationInterceptorDto, transactionalChecked, consentChecked);
-    }
-
-    private Verdict evaluateHttpMapping(FhirVaultDto authorizationInterceptorDto,
-                                        VerdictWrapper transactionalChecked, VerdictWrapper consentChecked) {
-
-        List<String> policies = HttpMethodMapping.getPolicies(authorizationInterceptorDto.getHttpMethod());
-
-        boolean containsInTransactional = sameAtLeastOne(transactionalChecked.getAllowActions(), policies);
-
-        boolean containsInConsent = sameAtLeastOne(consentChecked.getAllowActions(), policies);
-
-        if (containsInTransactional || containsInConsent) {
-            return new VerdictWrapper(PolicyEnum.ALLOW).buildVerdict();
-        }
-
-        return new VerdictWrapper(PolicyEnum.DENY)
-                .addToDenyActions(FhirVaultConstant.NOT_MAP_HTTP_METHOD_MESSAGE)
-                .buildVerdict();
-    }
-
-    private boolean sameAtLeastOne(Collection<CodeableConcept> actions, List<String> httpMethodPolices) {
-        return actions.stream()
-                .anyMatch(codeableConcept -> codeableConcept.getCoding()
-                        .stream()
-                        .anyMatch(coding -> httpMethodPolices.contains(coding.getCode())));
+        return HttpMethodMappingEvaluation.evaluateHttpMapping(authorizationInterceptorDto, transactionalChecked,
+                consentChecked);
     }
 
     private VerdictWrapper evaluateConsent(DomainResource userLogging, String resourceIdentifier) {
@@ -113,7 +88,7 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
     }
 
     private VerdictWrapper evaluate(DomainResource userLogging, List<File> permissionFiles) {
-        List<VerdictWrapper> checkedResult = new ArrayList<>();
+        ListVerdictWrapper listVerdictWrapper = new ListVerdictWrapper();
 
         for (File file : permissionFiles) {
             Permission permission = FHIRFileUtil.readResource(file, Permission.class);
@@ -131,28 +106,18 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
             Set<CodeableConcept> userLoggingDenyActions =
                     evaluateXPathExpressionAndCollectActions(userLogging, denyPoliciesOfResource);
 
-            checkedResult.add(evaluate(permission.getCombining(), userLoggingAllowActions, userLoggingDenyActions));
+            listVerdictWrapper.addVerdictWrapper(evaluate(permission.getCombining(), userLoggingAllowActions,
+                    userLoggingDenyActions));
         }
 
-        return makeDecision(checkedResult);
+        return makeDecision(listVerdictWrapper);
     }
 
-    private VerdictWrapper makeDecision(List<VerdictWrapper> checkedResult) {
-        if (checkedResult.stream().allMatch(verdict -> PolicyEnum.ALLOW.equals(verdict.getTheDecision()))) {
-            Set<CodeableConcept> allowActions = checkedResult
-                    .stream()
-                    .flatMap(verdictWrapper -> verdictWrapper.getAllowActions().stream())
-                    .collect(Collectors.toSet());
-            return new VerdictWrapper(PolicyEnum.ALLOW).allowActions(allowActions);
+    private VerdictWrapper makeDecision(ListVerdictWrapper verdictWrappers) {
+        if (verdictWrappers.isAllMatch(PolicyEnum.ALLOW)) {
+            return new VerdictWrapper(PolicyEnum.ALLOW).allowActions(verdictWrappers.getAllowActions());
         }
-
-        Set<CodeableConcept> denyActions = checkedResult
-                .stream()
-                .filter(verdictWrapper -> PolicyEnum.DENY.equals(verdictWrapper.getTheDecision()))
-                .flatMap(verdictWrapper -> verdictWrapper.getDenyActions().stream())
-                .collect(Collectors.toSet());
-
-        return new VerdictWrapper(PolicyEnum.DENY).denyActions(denyActions);
+        return new VerdictWrapper(PolicyEnum.DENY).denyActions(verdictWrappers.getDenyActions());
     }
 
     private Set<CodeableConcept> evaluateXPathExpressionAndCollectActions(DomainResource userLogin,
@@ -180,7 +145,6 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
         List<Permission.RuleActivityComponent> rulesActivities = permission.getRule()
                 .stream()
                 .filter(ruleComponent -> ruleComponent.getType() == type)
-                .filter(ruleComponent -> PermissionValidation.isValid(ruleComponent))
                 .flatMap(ruleComponent -> ruleComponent.getActivity().stream())
                 .collect(Collectors.toList());
 
