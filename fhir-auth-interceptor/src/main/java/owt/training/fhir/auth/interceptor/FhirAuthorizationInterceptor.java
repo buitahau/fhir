@@ -46,7 +46,7 @@ public class FhirAuthorizationInterceptor extends AuthorizationInterceptor {
                                                IBaseResource theInputResource, IIdType theInputResourceId,
                                                IBaseResource theOutputResource, Pointcut thePointcut) {
 
-        FhirVaultDto authorizationInterceptorDto = new FhirVaultDto(theRequestDetails);
+        FhirVaultDto authorizationInterceptorDto = new FhirVaultDto(theInputResourceId, theRequestDetails);
 
         return evaluate(authorizationInterceptorDto);
     }
