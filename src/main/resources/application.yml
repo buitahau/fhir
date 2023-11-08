@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ci_bluetooth
+    username: root
+    password: 123456
+  jpa:
+    show-sql: true
+server:
+  servlet:
+    context-path: /tracking-working-time
+mqtt:
+  automaticReconnect: true
+  cleanSession: true
+  connectionTimeout: 10
+  clientId: haubui-MQTT
+  hostname: 127.0.0.1
+  port: 1883
