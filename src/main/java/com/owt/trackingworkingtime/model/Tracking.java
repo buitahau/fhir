@@ -8,7 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.sql.Date;
+import java.util.Date;
+
 
 @Entity
 @Data
@@ -21,6 +22,7 @@ public class Tracking {
     @NonNull
     @Column(name = "tag_id")
     private String tagId;
+
     @Id
     @NonNull
     @Column(name = "tracking_time")
