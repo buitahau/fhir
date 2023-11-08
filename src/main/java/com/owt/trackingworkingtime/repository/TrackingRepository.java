@@ -12,7 +12,7 @@ import java.util.Date;
 @Repository
 public interface TrackingRepository extends JpaRepository<Tracking, TrackingId> {
     @Query(value = "SELECT count(tag_id) > 0 FROM tracking " +
-            "WHERE date_trunc('minute', tracking_time) = date_trunc('minute', Cast(:timeChecking as timestamp)) " +
+            "WHERE date_trunc('minute', tracking_time) = date_trunc('minute', Cast(:timeChecking as timestamp with time zone)) " +
             "AND tag_id = :tagId " +
             "LIMIT 1", nativeQuery = true)
     boolean existsTimeTrackingCustomQuery(@Param("tagId") String tagId, @Param("timeChecking") Date timeChecking);
