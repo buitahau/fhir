@@ -1,5 +1,6 @@
 package com.owt.trackingworkingtime.service;
 
+import com.owt.trackingworkingtime.exception.ResourceExistedException;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.repository.TrackingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,10 @@ public class TrackingServiceImpl implements TrackingService {
 
     @Override
     public Tracking save(Tracking tracking) {
+        boolean isExistTrackingTime = trackingRepository.existsTimeTrackingCustomQuery(tracking.getTagId(), tracking.getTrackingTime());
+        if (isExistTrackingTime) {
+            throw new ResourceExistedException("Tracking time for this tag id existed.");
+        }
         return trackingRepository.save(tracking);
     }
 }

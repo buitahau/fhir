@@ -1,6 +1,7 @@
 package com.owt.trackingworkingtime.controller;
 
 import com.owt.trackingworkingtime.dto.TrackingDto;
+import com.owt.trackingworkingtime.exception.ResourceExistedException;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.service.TrackingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,14 @@ public class TrackingController {
     TrackingService trackingService;
 
     @PostMapping
-    public ResponseEntity<Tracking> save(@RequestBody TrackingDto trackingDto) {
-        Tracking tracking = trackingService.save(trackingDto.toTracking());
-        return new ResponseEntity<>(tracking, HttpStatus.CREATED);
+    public ResponseEntity<?> save(@RequestBody TrackingDto trackingDto) {
+        try {
+            Tracking tracking = trackingService.save(trackingDto.toTracking());
+            return new ResponseEntity<>(tracking, HttpStatus.CREATED);
+        } catch (ResourceExistedException re) {
+            return new ResponseEntity<>(re.getMessage(), HttpStatus.CONFLICT);
+        } catch (RuntimeException ex) {
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
