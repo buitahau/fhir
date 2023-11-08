@@ -1,5 +1,6 @@
 package com.owt.trackingworkingtime.service.mqtt;
 
+import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.service.TrackingService;
 import com.owt.trackingworkingtime.util.DateUtil;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
@@ -40,7 +41,13 @@ public class MessagingService {
         try {
             String[] data = payload.split("/");
             String tagId = data[0];
-            Date date = DateUtil.convert(data[1]);
+            Date trackingTime = DateUtil.convert(data[1]);
+
+            Tracking tracking = new Tracking();
+            tracking.setTagId(tagId);
+            tracking.setTrackingTime(trackingTime);
+
+            trackingService.save(tracking);
         } catch (ParseException e) {
             e.printStackTrace();
         }

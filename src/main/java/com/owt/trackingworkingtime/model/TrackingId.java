@@ -1,18 +1,25 @@
 package com.owt.trackingworkingtime.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.owt.trackingworkingtime.util.DateUtil;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.Date;
 
-@AllArgsConstructor
 @EqualsAndHashCode
-@NoArgsConstructor
-@Data
+@Getter
+@Setter
 public class TrackingId implements Serializable {
+
     private String tagId;
+
     private Date trackingTime;
+
+    public TrackingId() {
+    }
+
+    public TrackingId(String tagId, Date trackingTime) {
+        this.tagId = tagId;
+        this.trackingTime = DateUtil.setZeroSecondAndMillisecond(trackingTime);
+    }
 }
