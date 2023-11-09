@@ -11,12 +11,11 @@ import java.util.Date;
 
 @Entity
 @IdClass(TrackingId.class)
-@RequiredArgsConstructor
 @NoArgsConstructor
 @Table(name = "tracking", schema = "public")
 @Getter
-@Setter
 public class Tracking implements Serializable {
+
     @Id
     @NonNull
     @Column(name = "tag_id")
@@ -28,12 +27,21 @@ public class Tracking implements Serializable {
     private Date trackingTime;
 
     @CreationTimestamp
-    @Column(name = "created_on")
-    private Date createdOn;
+    @Column(name = "created_date")
+    private Date createdDate;
 
     @UpdateTimestamp
-    @Column(name = "updated_on")
-    private Date updatedOn;
+    @Column(name = "modified_date")
+    private Date modifiedDate;
+
+    public Tracking(String tagId, Date trackingTime) {
+        this.tagId = tagId;
+        setTrackingTime(trackingTime);
+    }
+
+    public void setTagId(String tagId) {
+        this.tagId = tagId;
+    }
 
     public void setTrackingTime(Date trackingTime) {
         this.trackingTime = DateUtil.setZeroSecondAndMillisecond(trackingTime);
