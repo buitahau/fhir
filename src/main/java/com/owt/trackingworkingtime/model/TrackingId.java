@@ -20,6 +20,10 @@ public class TrackingId implements Serializable {
 
     public TrackingId(String tagId, Date trackingTime) {
         this.tagId = tagId;
+        setTrackingTime(trackingTime);
+    }
+
+    public void setTrackingTime(Date trackingTime) {
         this.trackingTime = DateUtil.setZeroSecondAndMillisecond(trackingTime);
     }
 }

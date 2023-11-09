@@ -15,4 +15,11 @@ public class TrackingDto {
     public Tracking toTracking() {
         return new Tracking(tagId, trackingTime);
     }
+
+    public static TrackingDto from(Tracking tracking) {
+        TrackingDto dto = new TrackingDto();
+        dto.setTrackingTime(tracking.getTrackingTime());
+        dto.setTagId(tracking.getTagId().trim());
+        return dto;
+    }
 }

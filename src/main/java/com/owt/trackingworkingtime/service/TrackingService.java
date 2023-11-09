@@ -1,7 +1,12 @@
 package com.owt.trackingworkingtime.service;
 
-import com.owt.trackingworkingtime.model.Tracking;
+import com.owt.trackingworkingtime.dto.TrackingDto;
+
+import java.util.Date;
+import java.util.List;
 
 public interface TrackingService {
-    Tracking save(Tracking tracking);
+    TrackingDto save(TrackingDto trackingDto);
+
+    List<TrackingDto> find(String tagId, Date date);
 }
