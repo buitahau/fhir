@@ -20,7 +20,16 @@ public interface TrackingRepository extends JpaRepository<Tracking, TrackingId> 
     boolean existsTimeTrackingCustomQuery(@Param("tagId") String tagId, @Param("timeChecking") Date timeChecking);
 
     @Query(value = "SELECT * FROM tracking where tag_id = :tagId " +
-            "AND date_trunc('day', (tracking_time at time zone :zone)) = date_trunc('day', (:date at time zone :zone))",
+            "AND date_trunc('day', (tracking_time at time zone :fromZone)) >= date_trunc('day', (:fromDate at time zone :fromZone)) " +
+            "AND date_trunc('day', (tracking_time at time zone :toZone)) <= date_trunc('day', (:toDate at time zone :toZone)) " +
+            "ORDER BY tracking_time",
             nativeQuery = true)
-    List<Tracking> findByTagIdAndDate(@Param("tagId") String tagId, @Param("date") Date date, @Param("zone") String zone);
+    List<Tracking> findByTagIdAndDate(@Param("tagId") String tagId, @Param("fromDate") Date fromDate, @Param("fromZone") String fromZone, @Param("toDate") Date toDate, @Param("toZone") String toZone);
+
+    @Query(value = "SELECT * FROM tracking where tag_id = :tagId " +
+            "AND date_trunc('hour', tracking_time) >= date_trunc('hour', Cast(:fromDate as timestamp with time zone)) " +
+            "AND date_trunc('hour', tracking_time) <= date_trunc('hour', Cast(:toDate as timestamp with time zone)) " +
+            "ORDER BY tracking_time",
+            nativeQuery = true)
+    List<Tracking> findByTagIdAndDate(@Param("tagId") String tagId, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 }

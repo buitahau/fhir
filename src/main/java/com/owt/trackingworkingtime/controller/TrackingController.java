@@ -1,12 +1,18 @@
 package com.owt.trackingworkingtime.controller;
 
+import com.owt.trackingworkingtime.dto.TrackingCombinationDto;
 import com.owt.trackingworkingtime.dto.TrackingDto;
+import com.owt.trackingworkingtime.dto.TrackingRequestDto;
+import com.owt.trackingworkingtime.model.TrackingCombination;
+import com.owt.trackingworkingtime.service.TrackingCombinationService;
 import com.owt.trackingworkingtime.service.TrackingService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -16,10 +22,16 @@ public class TrackingController {
     @Autowired
     private TrackingService trackingService;
 
-    @GetMapping
-    public List<TrackingDto> find(@RequestParam(value = "tagId") String tadId,
-                                  @RequestParam(value = "date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date date) {
+    @Autowired
+    private TrackingCombinationService trackingCombinationService;
 
-        return trackingService.find(tadId, date);
+    @PostMapping
+    public List<TrackingDto> find(@RequestBody @Valid TrackingRequestDto trackingRequestDto) {
+        return trackingService.find(trackingRequestDto);
+    }
+
+    @PostMapping("/test")
+    public List<TrackingCombination> test(@RequestBody @Valid TrackingCombinationDto trackingCombinationDto) {
+        return trackingCombinationService.optimizeTrackingTime(trackingCombinationDto);
     }
 }

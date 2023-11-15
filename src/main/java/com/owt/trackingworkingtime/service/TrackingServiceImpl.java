@@ -1,6 +1,7 @@
 package com.owt.trackingworkingtime.service;
 
 import com.owt.trackingworkingtime.dto.TrackingDto;
+import com.owt.trackingworkingtime.dto.TrackingRequestDto;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.model.TrackingId;
 import com.owt.trackingworkingtime.repository.TrackingRepository;
@@ -8,8 +9,10 @@ import com.owt.trackingworkingtime.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TrackingServiceImpl implements TrackingService {
@@ -22,19 +25,27 @@ public class TrackingServiceImpl implements TrackingService {
         TrackingId trackingId = new TrackingId(trackingDto.getTagId(), trackingDto.getTrackingTime());
 
         Optional<Tracking> optionalTracking = trackingRepository.findById(trackingId);
-        if (optionalTracking.isPresent()) {
-            return TrackingDto.from(optionalTracking.get());
-        }
+        return optionalTracking.map(TrackingDto::from).orElseGet(() -> TrackingDto.from(trackingRepository.save(trackingDto.toTracking())));
 
-        return TrackingDto.from(trackingRepository.save(trackingDto.toTracking()));
     }
 
     @Override
-    public List<TrackingDto> find(String tagId, Date date) {
-        String zone = DateUtil.getOnlyZone(date);
+    public List<TrackingDto> find(TrackingRequestDto trackingRequestDto) {
+        Date fromDate = trackingRequestDto.getFromDate();
+        String fromZone = DateUtil.getOnlyZone(fromDate);
 
-        return trackingRepository.findByTagIdAndDate(tagId, date, zone)
-                .stream().map(TrackingDto::from)
-                .collect(Collectors.toList());
+        Date toDate = trackingRequestDto.getToDate();
+        String toZone = DateUtil.getOnlyZone(toDate);
+
+        List<TrackingDto> allOfTrackingDto = new ArrayList<>();
+
+        for (String tagId : trackingRequestDto.getListTagId()) {
+            List<TrackingDto> trackingDtoByTagId = trackingRepository.findByTagIdAndDate(tagId, fromDate, fromZone, toDate, toZone)
+                    .stream().map(TrackingDto::from)
+                    .toList();
+            allOfTrackingDto.addAll(trackingDtoByTagId);
+        }
+
+        return allOfTrackingDto;
     }
 }
