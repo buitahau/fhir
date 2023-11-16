@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -58,19 +59,52 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
         TrackingCombination trackingCombination = new TrackingCombination(tagId, checkIn, checkOut);
         listTrackingCombination.add(trackingCombination);
 
-        return trackingCombinationRepository.saveAll(listTrackingCombination);
+        //Get old data
+        List<TrackingCombination> existingData = trackingCombinationRepository.findByTagIdAndDate(
+                tagId, trackingCombinationDto.getCheckIn(), trackingCombinationDto.getCheckOut());
+
+        return handleTrackingCombination(listTrackingCombination, existingData);
     }
 
-    //To do
-    public List<TrackingCombination> mergeTrackingCombinationData(
-            List<TrackingCombination> draftData, String tagId, Date timeTracking) {
-        List<TrackingCombination> existingData = trackingCombinationRepository.findByTagIdAndDate(tagId, timeTracking);
-
-        if (CollectionUtils.isEmpty(existingData)){
+    public List<TrackingCombination> handleTrackingCombination(List<TrackingCombination> draftData, List<TrackingCombination> existingData) {
+        if (CollectionUtils.isEmpty(existingData)) {
             return trackingCombinationRepository.saveAll(draftData);
         }
-
-
-        return null;
+        draftData.addAll(existingData);
+        List<TrackingCombination> mergedTrackingCombination = mergeTrackingCombination(draftData);
+        trackingCombinationRepository.deleteAll(existingData);
+        return trackingCombinationRepository.saveAll(mergedTrackingCombination);
     }
+
+
+    public List<TrackingCombination> mergeTrackingCombination(List<TrackingCombination> trackingCombinations) {
+        if (trackingCombinations == null || trackingCombinations.size() <= 1) {
+            return trackingCombinations;
+        }
+
+        trackingCombinations.sort(Comparator.comparing(TrackingCombination::getCheckIn));
+
+        List<TrackingCombination> mergedTrackingCb = new ArrayList<>();
+        TrackingCombination currentTrackingCb = trackingCombinations.get(0);
+
+        for (int i = 1; i < trackingCombinations.size(); i++) {
+            TrackingCombination nextTrackingCombination = trackingCombinations.get(i);
+
+            if (currentTrackingCb.getCheckOut().compareTo(nextTrackingCombination.getCheckIn()) >= 0) {
+                if (currentTrackingCb.getCheckOut().compareTo(nextTrackingCombination.getCheckOut()) < 0) {
+                    currentTrackingCb.setCheckOut(nextTrackingCombination.getCheckOut());
+                }
+            } else {
+                mergedTrackingCb.add(currentTrackingCb);
+                currentTrackingCb = nextTrackingCombination;
+            }
+        }
+
+        // Add the last tracking combination
+        mergedTrackingCb.add(currentTrackingCb);
+
+        return mergedTrackingCb;
+    }
+
+
 }
