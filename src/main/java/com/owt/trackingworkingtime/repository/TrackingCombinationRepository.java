@@ -18,4 +18,9 @@ public interface TrackingCombinationRepository extends JpaRepository<TrackingCom
             "AND date_trunc('minute', check_out) <= date_trunc('minute', Cast(:checkOut as timestamp with time zone)) " +
             "ORDER BY check_in", nativeQuery = true)
     List<TrackingCombination> findByTagIdAndDate(@Param("tagId") String tagId, @Param("checkIn") Date checkIn, @Param("checkOut") Date checkOut);
+
+    @Query(value = "SELECT * FROM tracking_combination WHERE tag_id = :tagId " +
+            "AND date_trunc('day', check_in) >= date_trunc('day', Cast(:date as timestamp with time zone)) " +
+            "ORDER BY check_in", nativeQuery = true)
+    List<TrackingCombination> findByTagIdAndDate(@Param("tagId") String tagId, @Param("date") Date date);
 }

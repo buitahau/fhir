@@ -26,7 +26,6 @@ public class TrackingServiceImpl implements TrackingService {
 
         Optional<Tracking> optionalTracking = trackingRepository.findById(trackingId);
         return optionalTracking.map(TrackingDto::from).orElseGet(() -> TrackingDto.from(trackingRepository.save(trackingDto.toTracking())));
-
     }
 
     @Override
@@ -39,7 +38,7 @@ public class TrackingServiceImpl implements TrackingService {
 
         List<TrackingDto> allOfTrackingDto = new ArrayList<>();
 
-        for (String tagId : trackingRequestDto.getListTagId()) {
+        for (String tagId : trackingRequestDto.getTagIds()) {
             List<TrackingDto> trackingDtoByTagId = trackingRepository.findByTagIdAndDate(tagId, fromDate, fromZone, toDate, toZone)
                     .stream().map(TrackingDto::from)
                     .toList();

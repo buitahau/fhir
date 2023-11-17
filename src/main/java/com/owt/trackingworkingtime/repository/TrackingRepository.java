@@ -32,4 +32,10 @@ public interface TrackingRepository extends JpaRepository<Tracking, TrackingId> 
             "ORDER BY tracking_time",
             nativeQuery = true)
     List<Tracking> findByTagIdAndDate(@Param("tagId") String tagId, @Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
+
+    @Query(value = "SELECT * FROM tracking where tag_id = :tagId " +
+            "AND date_trunc('day', tracking_time) = date_trunc('day', Cast(:date as timestamp with time zone)) " +
+            "ORDER BY tracking_time",
+            nativeQuery = true)
+    List<Tracking> findByTagIdAndDate(@Param("tagId") String tagId, @Param("date") Date date);
 }
