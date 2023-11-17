@@ -1,5 +1,7 @@
 package com.owt.trackingworkingtime;
 
+import com.owt.trackingworkingtime.service.TrackingCombinationService;
+import com.owt.trackingworkingtime.service.TrackingService;
 import com.owt.trackingworkingtime.service.mqtt.MessagingService;
 import com.owt.trackingworkingtime.util.DateUtil;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -11,7 +13,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.Date;
+import java.util.*;
 
 @SpringBootApplication(scanBasePackages = "com.owt.trackingworkingtime")
 @EnableScheduling
@@ -19,6 +21,12 @@ public class TrackingWorkingTimeApplication {
 
     @Autowired
     private MessagingService messagingService;
+
+    @Autowired
+    private TrackingService trackingService;
+
+    @Autowired
+    private TrackingCombinationService trackingCombinationService;
 
     private static final String TRACING_TOPIC = "tracing";
 
@@ -48,7 +56,21 @@ public class TrackingWorkingTimeApplication {
     }
 
     private void publish(String tagId) throws MqttException {
-        messagingService.publish(TRACING_TOPIC, tagId + "/" + DateUtil.convert(new Date()));
+        messagingService.publish(TRACING_TOPIC, tagId);
+    }*/
+
+    @Scheduled(cron = "${cron-express.combine-tracking}")
+    public void scheduleTaskCombinationData() {
+        Date currentDate = Calendar.getInstance(TimeZone.getDefault()).getTime();
+        List<String> tagIdsByDate = trackingService.findTagIdsByDate(currentDate);
+        for (String tagId : tagIdsByDate) {
+            trackingCombinationService.aggregateTracking(tagId, currentDate);
+        }
     }
-     */
+
+    @Scheduled(cron = "${cron-express.delete-tracking}")
+    public void scheduleTaskDeleteTrackingData() {
+        Date currentDate = Calendar.getInstance(TimeZone.getDefault()).getTime();
+        trackingService.deleteByDate(currentDate);
+    }
 }

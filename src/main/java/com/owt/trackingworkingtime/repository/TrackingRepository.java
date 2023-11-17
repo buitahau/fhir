@@ -3,6 +3,7 @@ package com.owt.trackingworkingtime.repository;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.model.TrackingId;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -38,4 +39,16 @@ public interface TrackingRepository extends JpaRepository<Tracking, TrackingId> 
             "ORDER BY tracking_time",
             nativeQuery = true)
     List<Tracking> findByTagIdAndDate(@Param("tagId") String tagId, @Param("date") Date date);
+
+    @Query(value = "SELECT tag_Id FROM tracking " +
+            "WHERE date_trunc('day', tracking_time) = date_trunc('day', Cast(:date as timestamp with time zone)) " +
+            "ORDER BY tracking_time",
+            nativeQuery = true)
+    List<String> findTagIdByDate(@Param("date") Date date);
+
+    @Modifying
+    @Query(value = "DELETE FROM tracking " +
+            "WHERE date_trunc('day', tracking_time) = date_trunc('day', Cast(:date as timestamp with time zone)) ",
+            nativeQuery = true)
+    void deleteByDate(@Param("date") Date date);
 }

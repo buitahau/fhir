@@ -1,5 +1,6 @@
 package com.owt.trackingworkingtime.service;
 
+import com.google.common.collect.Maps;
 import com.owt.trackingworkingtime.dto.TrackingDto;
 import com.owt.trackingworkingtime.dto.TrackingRequestDto;
 import com.owt.trackingworkingtime.model.Tracking;
@@ -9,10 +10,7 @@ import com.owt.trackingworkingtime.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class TrackingServiceImpl implements TrackingService {
@@ -46,5 +44,15 @@ public class TrackingServiceImpl implements TrackingService {
         }
 
         return allOfTrackingDto;
+    }
+
+    @Override
+    public List<String> findTagIdsByDate(Date date) {
+        return trackingRepository.findTagIdByDate(date);
+    }
+
+    @Override
+    public void deleteByDate(Date date) {
+        trackingRepository.deleteByDate(date);
     }
 }

@@ -15,3 +15,6 @@ mqtt:
   clientId: haubui-MQTT
   hostname: 127.0.0.1
   port: 1883
+cron-express:
+  delete-tracking: "0 0 0 * * * "
+  combine-tracking: "0 59 23 * * *"
