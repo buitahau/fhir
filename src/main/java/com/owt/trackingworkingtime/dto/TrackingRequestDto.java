@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 public class TrackingRequestDto {
     @NotNull(message = "List tag id can not be null.")
-    private List<String> listTagId;
+    private List<String> tagIds;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Date fromDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

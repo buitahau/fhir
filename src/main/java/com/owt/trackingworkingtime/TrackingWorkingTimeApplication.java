@@ -31,6 +31,7 @@ public class TrackingWorkingTimeApplication {
         messagingService.subscribe(TRACING_TOPIC);
     }
 
+    /*
     @Scheduled(fixedRate = 5000)
     public void publishTag001() throws MqttException {
         publish("000001");
@@ -49,4 +50,5 @@ public class TrackingWorkingTimeApplication {
     private void publish(String tagId) throws MqttException {
         messagingService.publish(TRACING_TOPIC, tagId + "/" + DateUtil.convert(new Date()));
     }
+     */
 }

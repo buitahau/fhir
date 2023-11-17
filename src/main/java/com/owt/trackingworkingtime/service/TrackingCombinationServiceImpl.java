@@ -1,7 +1,6 @@
 package com.owt.trackingworkingtime.service;
 
 import com.owt.trackingworkingtime.constant.TrackingConstant;
-import com.owt.trackingworkingtime.dto.TrackingCombinationDto;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.model.TrackingCombination;
 import com.owt.trackingworkingtime.repository.TrackingCombinationRepository;
@@ -20,27 +19,36 @@ import java.util.List;
 public class TrackingCombinationServiceImpl implements TrackingCombinationService {
 
     @Autowired
-    TrackingRepository trackingRepository;
+    private TrackingRepository trackingRepository;
 
     @Autowired
-    TrackingCombinationRepository trackingCombinationRepository;
+    private TrackingCombinationRepository trackingCombinationRepository;
 
     @Override
-    public List<TrackingCombination> optimizeTrackingTime(TrackingCombinationDto trackingCombinationDto) {
-        String tagId = trackingCombinationDto.getTagId();
-        List<Tracking> listTracking = trackingRepository.findByTagIdAndDate(
-                tagId, trackingCombinationDto.getCheckIn(), trackingCombinationDto.getCheckOut());
+    public void aggregateTracking(String tagId, Date date) {
+        List<Tracking> trackings = trackingRepository.findByTagIdAndDate(tagId, date);
 
-        if (CollectionUtils.isEmpty(listTracking)) {
-            return new ArrayList<>();
+        if (CollectionUtils.isEmpty(trackings)) {
+            return;
         }
 
-        Date checkIn = listTracking.get(0).getTrackingTime();
-        Date checkOut = DateUtils.addMinutes(checkIn, TrackingConstant.TIMEOUT_BY_MINUTE);
-        List<TrackingCombination> listTrackingCombination = new ArrayList<>();
+        List<TrackingCombination> draftTrackingCombinations = calculateTrackingCombination(tagId, trackings);
 
-        for (int i = 1; i < listTracking.size(); i++) {
-            Tracking tracking = listTracking.get(i);
+        List<TrackingCombination> existingTrackingCombinations =
+                trackingCombinationRepository.findByTagIdAndDate(tagId, date);
+
+        mergeTrackingCombination(draftTrackingCombinations, existingTrackingCombinations);
+    }
+
+    private List<TrackingCombination> calculateTrackingCombination(String tagId, List<Tracking> trackings) {
+
+        Date checkIn = trackings.get(0).getTrackingTime();
+        Date checkOut = DateUtils.addMinutes(checkIn, TrackingConstant.TIMEOUT_BY_MINUTE);
+
+        List<TrackingCombination> trackingCombinations = new ArrayList<>();
+
+        for (int i = 1; i < trackings.size(); i++) {
+            Tracking tracking = trackings.get(i);
             Date currentTrackingTime = tracking.getTrackingTime();
 
             if (DateUtils.isSameInstant(checkOut, currentTrackingTime)) {
@@ -48,37 +56,37 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
                 continue;
             }
 
-            //Add data
             TrackingCombination trackingCombination = new TrackingCombination(tagId, checkIn, checkOut);
-            listTrackingCombination.add(trackingCombination);
+            trackingCombinations.add(trackingCombination);
+
             checkIn = currentTrackingTime;
             checkOut = DateUtils.addMinutes(checkIn, TrackingConstant.TIMEOUT_BY_MINUTE);
         }
 
         //Add last data
         TrackingCombination trackingCombination = new TrackingCombination(tagId, checkIn, checkOut);
-        listTrackingCombination.add(trackingCombination);
+        trackingCombinations.add(trackingCombination);
 
-        //Get old data
-        List<TrackingCombination> existingData = trackingCombinationRepository.findByTagIdAndDate(
-                tagId, trackingCombinationDto.getCheckIn(), trackingCombinationDto.getCheckOut());
-
-        return handleTrackingCombination(listTrackingCombination, existingData);
+        return trackingCombinations;
     }
 
-    public List<TrackingCombination> handleTrackingCombination(List<TrackingCombination> draftData, List<TrackingCombination> existingData) {
+    public List<TrackingCombination> mergeTrackingCombination(List<TrackingCombination> draftData,
+                                                              List<TrackingCombination> existingData) {
+
         if (CollectionUtils.isEmpty(existingData)) {
             return trackingCombinationRepository.saveAll(draftData);
         }
+
         draftData.addAll(existingData);
         List<TrackingCombination> mergedTrackingCombination = mergeTrackingCombination(draftData);
+
         trackingCombinationRepository.deleteAll(existingData);
         return trackingCombinationRepository.saveAll(mergedTrackingCombination);
     }
 
 
     public List<TrackingCombination> mergeTrackingCombination(List<TrackingCombination> trackingCombinations) {
-        if (trackingCombinations == null || trackingCombinations.size() <= 1) {
+        if (CollectionUtils.isEmpty(trackingCombinations) || trackingCombinations.size() == 1) {
             return trackingCombinations;
         }
 
@@ -105,6 +113,4 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
 
         return mergedTrackingCb;
     }
-
-
 }
