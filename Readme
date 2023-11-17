@@ -1,0 +1,8 @@
+Install and start mqtt
+
+https://subscription.packtpub.com/book/iot-and-hardware/9781787287815/1/ch01lvl1sec12/installing-a-mosquitto-broker-on-macos
+
+/usr/local/sbin/mosquitto -c /usr/local/etc/mosquitto/mosquitto.conf
+
+MQTT
+https://github.com/donskytech/mqtt-node
