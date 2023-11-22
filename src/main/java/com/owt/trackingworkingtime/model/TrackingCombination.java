@@ -15,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Getter
 @Setter
-public class TrackingCombination {
+public class TrackingCombination extends AbstractPersistableEntity<TrackingCombinationId> {
     @Id
     @Column(name = "tag_id")
     private String tagId;
@@ -26,4 +26,9 @@ public class TrackingCombination {
 
     @Column(name = "check_out")
     private Date checkOut;
+
+    @Override
+    public TrackingCombinationId getId() {
+        return new TrackingCombinationId(tagId, checkIn);
+    }
 }

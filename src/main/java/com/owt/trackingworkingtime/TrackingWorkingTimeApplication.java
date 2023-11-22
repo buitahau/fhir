@@ -1,7 +1,9 @@
 package com.owt.trackingworkingtime;
 
+import com.owt.trackingworkingtime.service.CacheService;
+import com.owt.trackingworkingtime.service.TrackingCombinationService;
+import com.owt.trackingworkingtime.service.TrackingService;
 import com.owt.trackingworkingtime.service.mqtt.MessagingService;
-import com.owt.trackingworkingtime.util.DateUtil;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -11,16 +13,29 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 @SpringBootApplication(scanBasePackages = "com.owt.trackingworkingtime")
 @EnableScheduling
 public class TrackingWorkingTimeApplication {
 
+    private static final String TRACING_TOPIC = "tracing";
+
     @Autowired
     private MessagingService messagingService;
 
-    private static final String TRACING_TOPIC = "tracing";
+    @Autowired
+    private CacheService cacheService;
+
+    @Autowired
+    private TrackingService trackingService;
+
+    @Autowired
+    private TrackingCombinationService trackingCombinationService;
+
 
     public static void main(String[] args) {
         SpringApplication.run(TrackingWorkingTimeApplication.class, args);
@@ -31,24 +46,14 @@ public class TrackingWorkingTimeApplication {
         messagingService.subscribe(TRACING_TOPIC);
     }
 
-    /*
-    @Scheduled(fixedRate = 5000)
-    public void publishTag001() throws MqttException {
-        publish("000001");
+    @Scheduled(fixedRateString = "${fixed-schedule.combine-caching}", initialDelayString = "${fixed-schedule.combine-caching}")
+    public void scheduleTaskCombinationData() {
+        Date currentDate = Calendar.getInstance(TimeZone.getDefault()).getTime();
+        List<String> tagIdsByDate = trackingService.findTagIdsByDate(currentDate);
+        for (String tagId : tagIdsByDate) {
+            trackingCombinationService.aggregateTracking(tagId, currentDate);
+        }
+        trackingService.deleteByDate(currentDate);
+        cacheService.evictAllCaches();
     }
-
-    @Scheduled(fixedRate = 3000)
-    public void publishTag002() throws MqttException {
-        publish("000002");
-    }
-
-    @Scheduled(fixedRate = 10000)
-    public void publishTag003() throws MqttException {
-        publish("000003");
-    }
-
-    private void publish(String tagId) throws MqttException {
-        messagingService.publish(TRACING_TOPIC, tagId + "/" + DateUtil.convert(new Date()));
-    }
-     */
 }
