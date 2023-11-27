@@ -1,9 +1,7 @@
 package com.owt.trackingworkingtime.service;
 
 import com.owt.trackingworkingtime.constant.TrackingConstant;
-import com.owt.trackingworkingtime.dto.TimeSheet;
-import com.owt.trackingworkingtime.dto.TrackingRequestDto;
-import com.owt.trackingworkingtime.dto.TrackingResponseDto;
+import com.owt.trackingworkingtime.dto.TrackingCombinationDto;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.model.TrackingCombination;
 import com.owt.trackingworkingtime.repository.TrackingCombinationRepository;
@@ -45,15 +43,15 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
     }
 
     @Override
-    public List<TrackingResponseDto> findByTagIdsAndDate(TrackingRequestDto trackingRequestDto) {
+    public Map<String, List<TrackingCombinationDto>> findByTagIdsAndDate(List<String> tagIds, Date checkIn, Date checkOut) {
         List<TrackingCombination> trackingCombinations = trackingCombinationRepository.findByTagIdsAndDate(
-                trackingRequestDto.getTagIds(),
-                DateUtil.setZeroSecondAndMillisecond(trackingRequestDto.getCheckIn()), DateUtil.setZeroSecondAndMillisecond(trackingRequestDto.getCheckOut()));
+                tagIds,
+                DateUtil.setZeroSecondAndMillisecond(checkIn),
+                DateUtil.setZeroSecondAndMillisecond(checkOut)
+        );
 
-        Map<String, List<TimeSheet>> timeSheetsPerTagId = trackingCombinations.stream().collect(Collectors.groupingBy(
-                TrackingCombination::getTagId, Collectors.mapping(item -> new TimeSheet().from(item), Collectors.toList())));
-
-        return timeSheetsPerTagId.keySet().stream().map(item -> new TrackingResponseDto(item, timeSheetsPerTagId.get(item))).collect(Collectors.toList());
+        return trackingCombinations.stream().collect(Collectors.groupingBy(
+                TrackingCombination::getTagId, Collectors.mapping(TrackingCombinationDto::from, Collectors.toList())));
     }
 
     private List<TrackingCombination> calculateTrackingCombination(String tagId, List<Tracking> trackings) {
