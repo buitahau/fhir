@@ -13,12 +13,7 @@ public interface TrackingService {
     @Transactional
     TrackingDto save(TrackingDto trackingDto);
 
-    List<TrackingDto> find(TrackingRequestDto trackingRequestDto);
-
     List<String> findTagIdsByDate(Date date);
 
     List<String> findTagIdsByDatetime(Date date);
-
-    @Transactional
-    void deleteByDate(Date date);
 }

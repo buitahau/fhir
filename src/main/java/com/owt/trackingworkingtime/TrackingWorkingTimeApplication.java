@@ -36,7 +36,6 @@ public class TrackingWorkingTimeApplication {
     @Autowired
     private TrackingCombinationService trackingCombinationService;
 
-
     public static void main(String[] args) {
         SpringApplication.run(TrackingWorkingTimeApplication.class, args);
     }
@@ -47,13 +46,12 @@ public class TrackingWorkingTimeApplication {
     }
 
     @Scheduled(fixedRateString = "${fixed-schedule.combine-caching}", initialDelayString = "${fixed-schedule.combine-caching}")
-    public void scheduleTaskCombinationData() {
+    public void aggregateTrackings() {
         Date currentDate = Calendar.getInstance(TimeZone.getDefault()).getTime();
         List<String> tagIdsByDate = trackingService.findTagIdsByDate(currentDate);
         for (String tagId : tagIdsByDate) {
-            trackingCombinationService.aggregateTracking(tagId, currentDate);
+            trackingCombinationService.aggregateTrackings(tagId, currentDate);
         }
-        trackingService.deleteByDate(currentDate);
         cacheService.evictAllCaches();
     }
 }
