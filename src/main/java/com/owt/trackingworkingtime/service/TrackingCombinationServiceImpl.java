@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,7 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
     private TrackingCombinationRepository trackingCombinationRepository;
 
     @Override
-    public void aggregateTracking(String tagId, Date date) {
+    public void aggregateTrackings(String tagId, Date date) {
         List<Tracking> trackings = trackingRepository.findByTagIdAndDate(tagId, date);
 
         if (CollectionUtils.isEmpty(trackings)) {
@@ -41,6 +40,8 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
                 trackingCombinationRepository.findByTagIdAndDate(tagId, date);
 
         mergeTrackingCombination(draftTrackingCombinations, existingTrackingCombinations, tagId, date);
+
+        trackingRepository.deleteAll(trackings);
     }
 
     @Override

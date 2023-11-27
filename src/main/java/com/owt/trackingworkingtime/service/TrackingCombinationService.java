@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface TrackingCombinationService {
 
-    void aggregateTracking(String tagId, Date date);
+    void aggregateTrackings(String tagId, Date date);
 
     List<TrackingResponseDto> findByTagIdsAndDate(TrackingRequestDto trackingRequestDto);
 }
