@@ -2,11 +2,11 @@ package com.owt.trackingworkingtime.model;
 
 import com.owt.trackingworkingtime.util.DateUtil;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.io.Serializable;
 import java.util.Date;
 
 @Entity
@@ -14,15 +14,13 @@ import java.util.Date;
 @NoArgsConstructor
 @Table(name = "tracking", schema = "public")
 @Getter
-public class Tracking implements Serializable {
+public class Tracking extends AbstractPersistableEntity<TrackingId> {
 
     @Id
-    @NonNull
     @Column(name = "tag_id")
     private String tagId;
 
     @Id
-    @NonNull
     @Column(name = "tracking_time")
     private Date trackingTime;
 
@@ -45,5 +43,10 @@ public class Tracking implements Serializable {
 
     public void setTrackingTime(Date trackingTime) {
         this.trackingTime = DateUtil.setZeroSecondAndMillisecond(trackingTime);
+    }
+
+    @Override
+    public TrackingId getId() {
+        return new TrackingId(tagId, trackingTime);
     }
 }

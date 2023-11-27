@@ -1,19 +1,22 @@
 package com.owt.trackingworkingtime.service;
 
 import com.owt.trackingworkingtime.constant.TrackingConstant;
+import com.owt.trackingworkingtime.dto.TimeSheet;
+import com.owt.trackingworkingtime.dto.TrackingRequestDto;
+import com.owt.trackingworkingtime.dto.TrackingResponseDto;
 import com.owt.trackingworkingtime.model.Tracking;
 import com.owt.trackingworkingtime.model.TrackingCombination;
 import com.owt.trackingworkingtime.repository.TrackingCombinationRepository;
 import com.owt.trackingworkingtime.repository.TrackingRepository;
+import com.owt.trackingworkingtime.util.DateUtil;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.sql.Time;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TrackingCombinationServiceImpl implements TrackingCombinationService {
@@ -37,7 +40,19 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
         List<TrackingCombination> existingTrackingCombinations =
                 trackingCombinationRepository.findByTagIdAndDate(tagId, date);
 
-        mergeTrackingCombination(draftTrackingCombinations, existingTrackingCombinations);
+        mergeTrackingCombination(draftTrackingCombinations, existingTrackingCombinations, tagId, date);
+    }
+
+    @Override
+    public List<TrackingResponseDto> findByTagIdsAndDate(TrackingRequestDto trackingRequestDto) {
+        List<TrackingCombination> trackingCombinations = trackingCombinationRepository.findByTagIdsAndDate(
+                trackingRequestDto.getTagIds(),
+                DateUtil.setZeroSecondAndMillisecond(trackingRequestDto.getCheckIn()), DateUtil.setZeroSecondAndMillisecond(trackingRequestDto.getCheckOut()));
+
+        Map<String, List<TimeSheet>> timeSheetsPerTagId = trackingCombinations.stream().collect(Collectors.groupingBy(
+                TrackingCombination::getTagId, Collectors.mapping(item -> new TimeSheet().from(item), Collectors.toList())));
+
+        return timeSheetsPerTagId.keySet().stream().map(item -> new TrackingResponseDto(item, timeSheetsPerTagId.get(item))).collect(Collectors.toList());
     }
 
     private List<TrackingCombination> calculateTrackingCombination(String tagId, List<Tracking> trackings) {
@@ -71,7 +86,7 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
     }
 
     public List<TrackingCombination> mergeTrackingCombination(List<TrackingCombination> draftData,
-                                                              List<TrackingCombination> existingData) {
+                                                              List<TrackingCombination> existingData, String tagId, Date date) {
 
         if (CollectionUtils.isEmpty(existingData)) {
             return trackingCombinationRepository.saveAll(draftData);
@@ -80,7 +95,7 @@ public class TrackingCombinationServiceImpl implements TrackingCombinationServic
         draftData.addAll(existingData);
         List<TrackingCombination> mergedTrackingCombination = mergeTrackingCombination(draftData);
 
-        trackingCombinationRepository.deleteAll(existingData);
+        trackingCombinationRepository.deleteByTagIdDate(tagId, date);
         return trackingCombinationRepository.saveAll(mergedTrackingCombination);
     }
 

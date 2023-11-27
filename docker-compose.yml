@@ -1,0 +1,31 @@
+version: '2'
+services:
+  tracking-server:
+#    image: tracking-working-time-0.0.1:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - mqtt5
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ci_bluetooth
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=123456
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - mqtt_hostname=mqtt5
+      - mqtt_port=1883
+  db:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=123456
+      - POSTGRES_DB=ci_bluetooth
+  mqtt5:
+    image: eclipse-mosquitto
+    volumes:
+      - ./config:/mosquitto/config:rw

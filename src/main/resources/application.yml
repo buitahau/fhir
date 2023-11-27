@@ -5,6 +5,12 @@ spring:
     password: 123456
   jpa:
     show-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 30
+          order_inserts: true
+#        generate_statistics: true
 server:
   servlet:
     context-path: /tracking-working-time
@@ -12,6 +18,8 @@ mqtt:
   automaticReconnect: true
   cleanSession: true
   connectionTimeout: 10
-  clientId: haubui-MQTT
+  clientId: SpringBoot-MQTT
   hostname: 127.0.0.1
   port: 1883
+fixed-schedule:
+  combine-caching: 60000
