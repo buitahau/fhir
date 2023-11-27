@@ -5,6 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: on-failure
     ports:
       - "8080:8080"
     depends_on:
@@ -17,6 +18,7 @@ services:
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - mqtt_hostname=mqtt5
       - mqtt_port=1883
+      - fixed-schedule.combine-caching=3600000
   db:
     image: postgres:14-alpine
     ports:
@@ -25,7 +27,12 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=123456
       - POSTGRES_DB=ci_bluetooth
+    volumes:
+      - ./db_data:/var/lib/postgresql/data:rw
   mqtt5:
     image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
     volumes:
       - ./config:/mosquitto/config:rw

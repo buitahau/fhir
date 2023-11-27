@@ -24,14 +24,6 @@ public class Tracking extends AbstractPersistableEntity<TrackingId> {
     @Column(name = "tracking_time")
     private Date trackingTime;
 
-    @CreationTimestamp
-    @Column(name = "created_date")
-    private Date createdDate;
-
-    @UpdateTimestamp
-    @Column(name = "modified_date")
-    private Date modifiedDate;
-
     public Tracking(String tagId, Date trackingTime) {
         this.tagId = tagId;
         setTrackingTime(trackingTime);
