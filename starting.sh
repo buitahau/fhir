@@ -19,4 +19,4 @@ sudo apt-get install bluetooth bluez libbluetooth-dev libudev-dev
 
 # Build
 npm install
-node src/index.js
+sudo node src/index.js
