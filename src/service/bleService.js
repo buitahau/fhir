@@ -28,7 +28,7 @@ class BLEService {
 
                 // console.log(`${peripheralLocalName} - ${peripheral.rssi}`);
 
-                if (peripheralLocalName != undefined) {
+                if (peripheralLocalName) {
                     mqttClient.publish("tracing", peripheralLocalName);
                 }
             }
