@@ -20,9 +20,10 @@ public interface TrackingCombinationRepository extends JpaRepository<TrackingCom
             "ORDER BY checkIn")
     List<TrackingCombination> findByTagIdAndDate(@Param("tagId") String tagId, @Param("date") Date date);
 
-    @Query(value = "SELECT t FROM TrackingCombination t WHERE tagId IN (:tagIds) " +
-            "AND function('date_trunc', 'minute', t.checkIn) >= :checkIn " +
+    @Query(value = "SELECT t FROM TrackingCombination t " +
+            "WHERE function('date_trunc', 'minute', t.checkIn) >= :checkIn " +
             "AND function('date_trunc', 'minute', t.checkOut) <= :checkOut " +
+            "AND (:tagIds IS NULL or tagId IN (:tagIds)) " +
             "ORDER BY tagId,checkIn")
     List<TrackingCombination> findByTagIdsAndDate(@Param("tagIds") List<String> tagIds,
                                                   @Param("checkIn") Date checkIn, @Param("checkOut") Date checkOut);
